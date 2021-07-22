@@ -12,44 +12,77 @@ import board
 from digitalio import DigitalInOut, Direction, Pull
 from motor import *
 
-sensor1 = DigitalInOut(board.D2)
-sensor1.direction = Direction.INPUT
-sensor1.pull = Pull.UP
+class Sensor:
+    white = False
+    black = True
+    _sensor = 0
+    def __init__(self, sensor) -> None:
+        s = DigitalInOut(sensor)
+        s.direction = Direction.INPUT
+        s.pull = Pull.UP
+        self._sensor = s
+    def read(self):
+        return self._sensor.value
+    def toString(self):
+        if self.read():
+            return "0"
+        else:
+            return "x"
 
-sensor2 = DigitalInOut(board.D3)
-sensor2.direction = Direction.INPUT
-sensor2.pull = Pull.UP
+class Sensors:
+    _s = []
+    LeftLeft = 0
+    Left = 1
+    Center = 2
+    Right = 3
+    RightRight = 4
 
-sensor3 = DigitalInOut(board.D4)
-sensor3.direction = Direction.INPUT
-sensor3.pull = Pull.UP
+    def __init__(self, sensors) -> None:
+        self._s=sensors
+    def read(self, id):
+        return self._s[id].read()
+    def read_all(self):
+        ret = []
+        for s in self._s:
+            ret.append(s.read())
+        return ret
+    def toString(self):
+        ret = []
+        for s in self._s:
+            ret.append(s.toString())
+        return ret
 
-maxSpeed = 25  # maximale Geschwindigkeit (0-100)
+
+sensor = [Sensor(board.D1), Sensor(board.D2), Sensor(board.D3), Sensor(board.D4), Sensor(board.D5)]
+sensors = Sensors(sensor)
+
+maxSpeed =100  # maximale Geschwindigkeit (0-100)
 
 while True:
 
-    sensorWert_R = sensor1.value  # rechter Sensor
-    sensorWert_M = sensor2.value  # mittlerer Sensor
-    sensorWert_L = sensor3.value  # linker Sensor
+    values = sensors.read_all()
 
+    #if (sensorWert_L):
+
+    print(sensors.toString())
     #print(sensorWert_L, sensorWert_M, sensorWert_R)
     #time.sleep(0.25)
 
     # Fahrtrichtung festlegen
-    if sensorWert_M == 0:
+    
+    if sensors.read(Sensors.Center) == Sensor.black:
         #print("driveForward")
         motorR(maxSpeed)
         motorL(maxSpeed)
 
-    if sensorWert_L == 0:
+    if sensors.read(Sensors.LeftLeft) == Sensor.black or sensors.read(Sensors.Left) == Sensor.black:
         #print("driveLeft")
         motorR(maxSpeed)
         motorL(0)
 
-    if sensorWert_R == 0:
+    if sensors.read(Sensors.RightRight) == Sensor.black or sensors.read(Sensors.Right)==Sensor.black:
         #print("driveRight")
         motorR(0)
         motorL(maxSpeed)
-
 
 
