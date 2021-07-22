@@ -59,15 +59,7 @@ sensors = Sensors(sensor)
 maxSpeed =100  # maximale Geschwindigkeit (0-100)
 
 while True:
-
-    values = sensors.read_all()
-
-    #if (sensorWert_L):
-
     print(sensors.toString())
-    #print(sensorWert_L, sensorWert_M, sensorWert_R)
-    #time.sleep(0.25)
-
     # Fahrtrichtung festlegen
     
     if sensors.read(Sensors.Center) == Sensor.black:
@@ -75,14 +67,24 @@ while True:
         motorR(maxSpeed)
         motorL(maxSpeed)
 
-    if sensors.read(Sensors.LeftLeft) == Sensor.black or sensors.read(Sensors.Left) == Sensor.black:
+    if sensors.read(Sensors.Left) == Sensor.black:
+        #print("driveLeft")    #print(sensorWert_L, sensorWert_M, sensorWert_R)
+    #time.sleep(0.25)
+
+        motorR(maxSpeed)
+        motorL(maxSpeed/2)
+
+    if sensors.read(Sensors.LeftLeft) == Sensor.black:
         #print("driveLeft")
         motorR(maxSpeed)
         motorL(0)
-
-    if sensors.read(Sensors.RightRight) == Sensor.black or sensors.read(Sensors.Right)==Sensor.black:
+        
+    if sensors.read(Sensors.Right)==Sensor.black:
         #print("driveRight")
-        motorR(0)
+        motorR(maxSpeed/2)
         motorL(maxSpeed)
 
-
+    if sensors.read(Sensors.RightRight) == Sensor.black:
+        #print("driveLeft")
+        motorR(0)
+        motorL(maxSpeed)
