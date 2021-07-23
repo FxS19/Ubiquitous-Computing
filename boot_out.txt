@@ -1,1 +1,1 @@
-Adafruit CircuitPython 6.2.0 on 2021-04-05; Adafruit Metro M4 Express with samd51j19
+Adafruit CircuitPython 6.3.0 on 2021-06-01; Adafruit Metro ESP32S2 with ESP32S2

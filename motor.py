@@ -10,11 +10,11 @@ import board
 import pulseio
 
 # Motor R
-MotorR_In1 = pulseio.PWMOut(board.D10)
+MotorR_In1 = pulseio.PWMOut(board.IO14)
 MotorR_In1.duty_cycle = 0  # zwischen 0 und 65535
 
 # Motor L
-MotorL_In1 = pulseio.PWMOut(board.D9)
+MotorL_In1 = pulseio.PWMOut(board.IO15)
 MotorL_In1.duty_cycle = 0  # zwischen 0 und 65535
 
 def motorL(speed):  # linker Motor (Geschwindigkeit [0-100])

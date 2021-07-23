@@ -13,12 +13,14 @@ import board
 from motor import *
 from sensor import *
 
-sensors = Sensors([Sensor(board.D1), Sensor(board.D2), Sensor(board.D3), Sensor(board.D4), Sensor(board.D5)])
+sensors = Sensors([Sensor(board.IO5), Sensor(board.IO6), Sensor(board.IO7), Sensor(board.IO8), Sensor(board.IO9)])
 
 maxSpeed =100  # maximale Geschwindigkeit (0-100)
+counter = 0
 
 while True:
-    print(sensors.toString())
+    counter+=1
+    if counter%1000==0: print(sensors.toString())
     # Fahrtrichtung festlegen
     
     if sensors.read(Sensors.Center) == Sensor.black:
