@@ -38,6 +38,3 @@ class Motor:
         else:
             self.__fwd_pin.duty_cycle = 0
             self.__bwd_pin.duty_cycle = 0
-
-
-__import__

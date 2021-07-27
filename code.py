@@ -18,7 +18,7 @@ from sensor import *
 sensor_array = SensorArray([Sensor(board.IO5), Sensor(board.IO6), Sensor(board.IO7), Sensor(board.IO8), Sensor(board.IO9)])
 driver = Driver(Motor(io_pin_fwd= board.IO14, io_pin_bwd= board.IO13), Motor(io_pin_fwd= board.IO15, io_pin_bwd= board.IO16), alarm_sec=0.1)
 
-max_speed =100  # max speed (0-100)
+max_speed =40  # max speed (0-100)
 counter = 0
 
 while True:
