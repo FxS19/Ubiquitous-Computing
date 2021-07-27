@@ -24,17 +24,22 @@ class Motor:
 
     def get_speed(self) -> int:
         if self.__fwd_pin.duty_cycle == 0:
-            return self.__bwd_pin.duty_cycle
-        return self.__fwd_pin.duty_cycle
+            return int(self.__bwd_pin.duty_cycle / 650) * -1
+        return int(self.__fwd_pin.duty_cycle / 650)
     
     def set_speed(self, value: int) -> None:
         "value between -100 and 100"
         if value < 0:
+            if value < -100: value = -100
             self.__fwd_pin.duty_cycle = 0
-            self.__bwd_pin.duty_cycle = math.abs(value * 650) #reality between 0 and 65535 -> approximation
+            self.__bwd_pin.duty_cycle = value * -650 #reality between 0 and 65535 -> approximation
         elif value > 0:
+            if value > 100: value = 100
             self.__fwd_pin.duty_cycle = value * 650 #reality between 0 and 65535 -> approximation
             self.__bwd_pin.duty_cycle = 0
         else:
             self.__fwd_pin.duty_cycle = 0
             self.__bwd_pin.duty_cycle = 0
+
+    def mod_speed(self, value: int):
+        self.set_speed(self.get_speed() + value)

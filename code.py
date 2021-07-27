@@ -6,8 +6,6 @@
 # 28.06.21 - wb
 # v0.2
 #
-
-import time
 import math
 import board
 from motor import Motor
@@ -16,7 +14,7 @@ from sensor import *
 
 # SensorArray from left to right
 sensor_array = SensorArray([Sensor(board.IO5), Sensor(board.IO6), Sensor(board.IO7), Sensor(board.IO8), Sensor(board.IO9)])
-driver = Driver(sensor_array, Motor(io_pin_fwd= board.IO14, io_pin_bwd= board.IO13), Motor(io_pin_fwd= board.IO15, io_pin_bwd= board.IO16), alarm_sec=0.1)
+driver = Driver(sensor_array, motor_l= Motor(io_pin_fwd= board.IO14, io_pin_bwd= board.IO13), motor_r= Motor(io_pin_fwd= board.IO15, io_pin_bwd= board.IO16), alarm_sec=0.1)
 
 max_speed =40  # max speed (0-100)
 counter = 0
@@ -24,7 +22,8 @@ counter = 0
 while True:
     counter+=1
     driver.do()
-    if counter%1000==0: print(str(sensor_array))
+    if counter%1000==0: 
+        print(str(sensor_array), "Motor_l: " + str(driver.motor_l.get_speed()), "Motor_r: " + str(driver.motor_r.get_speed()))
     # choose direction
     
 
