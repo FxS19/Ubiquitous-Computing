@@ -19,9 +19,9 @@ class SensorValue:
     def __str__(self) -> str:
         """Return the value of this sensor as a single character String for better Reading"""
         if self.__value:
-            return " "
+            return "X"
         else:
-            return "x"
+            return " "
 
     def __eq__(self, o: object) -> bool:
         if isinstance(o, bool):
@@ -63,11 +63,11 @@ class Sensor:
 class SensorArray:
     """All IR sensors combined in one Class"""
     _s = []
-    LEFT_LEFT = 0
-    LEFT = 1
+    LEFT_LEFT = 4
+    LEFT = 3
     CENTER = 2
-    RIGHT = 3
-    RIGHT_RIGHT = 4
+    RIGHT = 1
+    RIGHT_RIGHT = 0
 
     def __init__(self, sensors) -> None:
         """All IR sensors
