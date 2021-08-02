@@ -60,6 +60,29 @@ class Sensor:
             return NotImplemented
         return self.read() == o.read()
 
+class SensorArrayValue:
+    _values = []
+
+    def __init__(self, sensorvalues: SensorValue) -> None:
+        self._values = sensorvalues
+
+    def __str__(self) -> str:
+        ret = []
+        for value in self._values:
+            ret.append(str(value))
+        return " ".join(ret)
+
+    def __eq__(self, other: object) -> bool:
+        ok = True
+        for id, selfvalue in enumerate(self._values):
+            if selfvalue != other[id] and ok:
+                ok = False
+        return ok
+
+    def __getitem__(self, id):
+        return self._values[id]
+
+
 class SensorArray:
     """All IR sensors combined in one Class"""
     _s = []
@@ -68,6 +91,14 @@ class SensorArray:
     CENTER = 2
     RIGHT = 1
     RIGHT_RIGHT = 0
+    history_length = 10
+    last_values = [SensorArrayValue([
+                SensorValue(SensorValue.WHITE), 
+                SensorValue(SensorValue.WHITE),
+                SensorValue(SensorValue.WHITE),
+                SensorValue(SensorValue.WHITE),
+                SensorValue(SensorValue.WHITE)
+    ])]
 
     def __init__(self, sensors) -> None:
         """All IR sensors
@@ -76,6 +107,7 @@ class SensorArray:
             sensors (Array<Sensor>): All Sensors
         """
         self._s=sensors
+        self.update()
     def read(self, id) -> SensorValue:
         """
         Read a sensor based on it's name
@@ -83,19 +115,40 @@ class SensorArray:
         Use SensorArray.[LEFT_LEFT, LEFT, CENTER, RIGHT, RIGHT_RIGHT] to index
         """
         return self._s[id].read()
+
+    def update(self):
+        ret = []
+        for s in self._s:
+            ret.append(s.read())
+        sav = SensorArrayValue(ret)
+        if sav != self.last_values[-1]:
+            if len(self.last_values) >= self.history_length:
+                self.last_values.pop(0)
+            self.last_values.append(sav)
+            print(str(sav))
+
     def read_all(self):
         """Return all Sensor Values as an Array
 
         Returns:
             Array<SensorValue>: Use SensorArray.[LEFT_LEFT, LEFT, CENTER, RIGHT, RIGHT_RIGHT] to index
         """
-        ret = []
-        for s in self._s:
-            ret.append(s.read())
-        return ret
+        self.update()     
+        return self.last_values
+
+    def all(sensors, color: SensorValue) -> bool:
+        c = 0
+        for sens in sensors:
+            if sens == color:
+                c += 1
+        if c == len(sensors): return True
+        return False
     
     def __str__(self) -> str:
         ret = []
-        for sensor in self._s:
-            ret.append(str(sensor.read()))
-        return " ".join(ret)
+        for value in self.last_values:
+            ret.append(str(value))
+        return "->".join(ret)
+
+    def __getitem__(self, id) -> Sensor:
+        return self._s[id]
