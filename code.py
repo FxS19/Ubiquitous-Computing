@@ -6,75 +6,54 @@
 # 28.06.21 - wb
 # v0.2
 #
-import math
 import board
-from motor import Motor
+import time
+from motor import Motor, Vehicle
 from driver import Driver
 from sensor import *
+import neopixel
+import math
+
+periodic = {
+    "driver": 0.05
+}
+max_execution_time = 100
+for k, v in enumerate(periodic): 
+    if max_execution_time > periodic[v]: max_execution_time = periodic[v]
+
 
 # SensorArray from left to right
 sensor_array = SensorArray([Sensor(board.IO9), Sensor(board.IO8), Sensor(board.IO7), Sensor(board.IO6), Sensor(board.IO5)])
-driver = Driver(sensor_array, motor_l= Motor(io_pin_fwd= board.IO14, io_pin_bwd= board.IO13), motor_r= Motor(io_pin_fwd= board.IO15, io_pin_bwd= board.IO16), alarm_sec=0.1)
+vehicle = Vehicle(motor_l= Motor(io_pin_fwd= board.IO14, io_pin_bwd= board.IO13), motor_r= Motor(io_pin_fwd= board.IO15, io_pin_bwd= board.IO16))
+driver = Driver(sensor_array, vehicle= vehicle, alarm_sec=0.05)
 
 max_speed = 30  # max speed (0-100)
 counter = 0
+timer = 0
+last_second = 0
+
+pixel_onboard = neopixel.NeoPixel(board.NEOPIXEL, 1)
+pixel_onboard.brightness = 0.5
+
 
 while True:
+    do_print = False
+    if time.monotonic()-last_second > 1:
+        last_second = time.monotonic()
+        do_print = True
     # choose direction
     sensor_array.update()
-    if counter%1000==0: 
-        print("left: " + str(driver.motor_l.get_speed()), "right: " + str(driver.motor_r.get_speed()))
-    counter+=1
+    driver.update()
+    vehicle.update()
 
-    # @TODO Aufgabe soll driver übernehmen
-    if sensor_array.last_values[-1][SensorArray.CENTER] == SensorValue.BLACK:
-        #print("driveForward")
-        driver.motor_r.set_speed(max_speed)
-        driver.motor_l.set_speed(max_speed)
-
-    if sensor_array.last_values[-1][SensorArray.RIGHT] == SensorValue.BLACK:
-        driver.motor_r.set_speed(max_speed) 
-        driver.motor_l.set_speed(math.floor(0)) #max_speed/2
-
-    if sensor_array.last_values[-1][SensorArray.RIGHT_RIGHT] == SensorValue.BLACK:
-        #print("driveLeft")
-        driver.motor_r.set_speed(max_speed)
-        driver.motor_l.set_speed(-max_speed)
-        
-    if sensor_array.last_values[-1][SensorArray.LEFT]==SensorValue.BLACK:
-        #print("driveRight")
-        driver.motor_r.set_speed(math.floor(0)) #max_speed/2
-        driver.motor_l.set_speed(max_speed)
-
-    if sensor_array.last_values[-1][SensorArray.LEFT_LEFT] == SensorValue.BLACK:
-        #print("driveLeft")
-        driver.motor_r.set_speed(-max_speed)
-        driver.motor_l.set_speed(max_speed)
-    """    
-    # if all Values are white the last Value should be used
-    if sensor_array.all(SensorValue.WHITE):
-        #print("driveLastDirection")
-        if sensor_array.last_values[-1][SensorArray.CENTER] == SensorValue.BLACK:
-            #print("driveForward")
-            driver.motor_r.set_speed(max_speed)
-            driver.motor_l.set_speed(max_speed)
-
-        if sensor_array.last_values[-1](SensorArray.RIGHT) == SensorValue.BLACK:
-            driver.motor_r.set_speed(max_speed) 
-            driver.motor_l.set_speed(math.floor(0)) #max_speed/2
-
-        if sensor_array.last_values[-1](SensorArray.RIGHT_RIGHT) == SensorValue.BLACK:
-            #print("driveLeft")
-            driver.motor_r.set_speed(max_speed)
-            driver.motor_l.set_speed(-max_speed)
-        
-        if sensor_array.last_values[-1](SensorArray.LEFT)==SensorValue.BLACK:
-            #print("driveRight")
-            driver.motor_r.set_speed(math.floor(0)) #max_speed/2
-            driver.motor_l.set_speed(max_speed)
-
-        if sensor_array.last_values[-1](SensorArray.LEFT_LEFT) == SensorValue.BLACK:
-            #print("driveLeft")
-            driver.motor_r.set_speed(-max_speed)
-            driver.motor_l.set_speed(max_speed)
-"""
+    if time.monotonic() - timer > max_execution_time:
+        pixel_onboard[0] = (255, 0, 0)
+    else:
+        pixel_onboard[0] = (0, 0, 255 - math.floor(((time.monotonic() - timer)/max_execution_time)*255))
+        if do_print: 
+            print("CPU: ", ((time.monotonic() - timer)/max_execution_time)*100, "%")
+            print("MOT:","left: " + str(vehicle.motor_l.__target), "right: " + str(vehicle.motor_r.__target))
+            print("- - - - - - - - - - - - - - - - - - -")
+            print()
+    timer = time.monotonic()
+    

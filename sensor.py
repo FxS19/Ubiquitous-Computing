@@ -8,6 +8,7 @@
 
 from digitalio import DigitalInOut, Direction, Pull
 import microcontroller
+import time
 
 class SensorValue:
     WHITE = False
@@ -21,7 +22,7 @@ class SensorValue:
         if self.__value:
             return "X"
         else:
-            return " "
+            return "-"
 
     def __eq__(self, o: object) -> bool:
         if isinstance(o, bool):
@@ -62,9 +63,19 @@ class Sensor:
 
 class SensorArrayValue:
     _values = []
+    _time = 0
+
+    def all(self, color: SensorValue) -> bool:
+        c = 0
+        for sens in self._values:
+            if sens == color:
+                c += 1
+        if c == len(self._values): return True
+        return False
 
     def __init__(self, sensorvalues: SensorValue) -> None:
         self._values = sensorvalues
+        self._time = time.monotonic()
 
     def __str__(self) -> str:
         ret = []
@@ -73,14 +84,27 @@ class SensorArrayValue:
         return " ".join(ret)
 
     def __eq__(self, other: object) -> bool:
-        ok = True
-        for id, selfvalue in enumerate(self._values):
-            if selfvalue != other[id] and ok:
-                ok = False
-        return ok
+        if isinstance(other, SensorValue):
+            return self.all(other)
+        elif isinstance(other, bool):
+            return self.all(SensorValue(other))
+        elif isinstance(other, SensorArrayValue):
+            ok = True
+            for id, selfvalue in enumerate(self._values):
+                if selfvalue != other[id] and ok:
+                    ok = False
+            return ok
+        else:
+            NotImplemented
 
     def __getitem__(self, id):
         return self._values[id]
+
+    def get_time_difference(self, other):
+        if isinstance(other, SensorArrayValue):
+            return abs(self._time - other._time)
+        else:
+            NotImplemented
 
 
 class SensorArray:
@@ -92,7 +116,7 @@ class SensorArray:
     RIGHT = 1
     RIGHT_RIGHT = 0
     history_length = 10
-    last_values = [SensorArrayValue([
+    history = [SensorArrayValue([
                 SensorValue(SensorValue.WHITE), 
                 SensorValue(SensorValue.WHITE),
                 SensorValue(SensorValue.WHITE),
@@ -121,11 +145,11 @@ class SensorArray:
         for s in self._s:
             ret.append(s.read())
         sav = SensorArrayValue(ret)
-        if sav != self.last_values[-1]:
-            if len(self.last_values) >= self.history_length:
-                self.last_values.pop(0)
-            self.last_values.append(sav)
-            print(str(sav))
+        if sav != self.history[-1]:
+            if len(self.history) >= self.history_length:
+                self.history.pop(0)
+            self.history.append(sav)
+            print("SENS:", str(sav))
 
     def read_all(self):
         """Return all Sensor Values as an Array
@@ -134,19 +158,11 @@ class SensorArray:
             Array<SensorValue>: Use SensorArray.[LEFT_LEFT, LEFT, CENTER, RIGHT, RIGHT_RIGHT] to index
         """
         self.update()     
-        return self.last_values
-
-    def all(sensors, color: SensorValue) -> bool:
-        c = 0
-        for sens in sensors:
-            if sens == color:
-                c += 1
-        if c == len(sensors): return True
-        return False
+        return self.history
     
     def __str__(self) -> str:
         ret = []
-        for value in self.last_values:
+        for value in self.history:
             ret.append(str(value))
         return "->".join(ret)
 
