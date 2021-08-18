@@ -50,10 +50,19 @@ while True:
         pixel_onboard[0] = (255, 0, 0)
     else:
         pixel_onboard[0] = (0, 0, 255 - math.floor(((time.monotonic() - timer)/max_execution_time)*255))
-        if do_print: 
+        if do_print:
+            pass 
+            print("- - - - - - - - - - - - - - - - - - -")
             print("CPU: ", ((time.monotonic() - timer)/max_execution_time)*100, "%")
             print("MOT:","left: " + str(vehicle.motor_l.__target), "right: " + str(vehicle.motor_r.__target))
-            print("- - - - - - - - - - - - - - - - - - -")
+            for id,val in enumerate(reversed(list(map(str,sensor_array.history)))): 
+                if id < 10:
+                    print(-id,"\t",val)
+                else:
+                    continue
             print()
+
+    if driver.get_corner():
+        pixel_onboard[0] = (0, 128, 0)
     timer = time.monotonic()
     

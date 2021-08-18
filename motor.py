@@ -12,7 +12,7 @@ import pulseio
 import microcontroller
 import time
 
-ACCELERATION = 100 # % per second
+ACCELERATION = 250 # % per second
 SPIKE_HEIGHT = 1.5
 
 class Motor:
@@ -70,7 +70,6 @@ class Motor:
         self.set_speed_raw(math.floor(self.__target + delta * SPIKE_HEIGHT * (1-percentage)) * 650)
 
     def __estimate_speed(self, begin_speed, target_speed):
-        return target_speed
         """
         working with linear acceleration, could be imperfect 
         TODO use degression

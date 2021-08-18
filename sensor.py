@@ -63,7 +63,7 @@ class Sensor:
 
 class SensorArrayValue:
     _values = []
-    _time = 0
+    time = 0
 
     def all(self, color: SensorValue) -> bool:
         c = 0
@@ -75,7 +75,7 @@ class SensorArrayValue:
 
     def __init__(self, sensorvalues: SensorValue) -> None:
         self._values = sensorvalues
-        self._time = time.monotonic()
+        self.time = time.monotonic()
 
     def __str__(self) -> str:
         ret = []
@@ -102,7 +102,9 @@ class SensorArrayValue:
 
     def get_time_difference(self, other):
         if isinstance(other, SensorArrayValue):
-            return abs(self._time - other._time)
+            return self.time - other.time
+        elif isinstance(other, int):
+            return self.time - other
         else:
             NotImplemented
 
@@ -115,7 +117,7 @@ class SensorArray:
     CENTER = 2
     RIGHT = 1
     RIGHT_RIGHT = 0
-    history_length = 10
+    history_length = 30
     history = [SensorArrayValue([
                 SensorValue(SensorValue.WHITE), 
                 SensorValue(SensorValue.WHITE),
@@ -149,7 +151,6 @@ class SensorArray:
             if len(self.history) >= self.history_length:
                 self.history.pop(0)
             self.history.append(sav)
-            print("SENS:", str(sav))
 
     def read_all(self):
         """Return all Sensor Values as an Array
