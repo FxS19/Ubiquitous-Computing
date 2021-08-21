@@ -1,10 +1,10 @@
-from math import exp
+from math import exp, pi
 from sensor import SensorArray
 from motor import Vehicle
 from sensor import *
 import time
 
-MAX_SPEED = 30
+MAX_SPEED = 55
 
 class Line:
     def is_something(array_value: SensorArrayValue):
@@ -48,13 +48,13 @@ class Driver:
         # left and right is swapped automatically
 
         #   0           1           2
-        1: [(1, 1),     (0,1),      (-1,1)],    # Bar width: 1
+        1: [(0.6,0.6),  (0,0.6),    (-0.6,0.6)],    #Bar width: 1
         #   0,1         1,2
-        2: [(0.7, 1),   (-0.3,1)],              # Bar width: 2
+        2: [(0.6,0.7),  (-0.6,0.6)],              # Bar width: 2
         #   1,0,1       0,1,2
-        3: [(1, 1),     (-1,0)],                # Bar width: 3
+        3: [(0.6,0.6),  (-0.7,0)],                # Bar width: 3
         #   1,0,1,2
-        4: [(-1,0)]                             # Bar width: 4
+        4: [(-0.7,0)]                             # Bar width: 4
     }
 
     def __init__(self, sensor_array: SensorArray, vehicle: Vehicle, alarm_sec: float) -> None:
@@ -82,7 +82,7 @@ class Driver:
         #        " RAW: ", Line.get_bar(current_sensor_value)
         #        )
         corner = self.get_corner()
-        if corner:
+        if corner and False:
             #drive recent corner
             bar_width = Line.get_bar_width(corner)
             bar_position = Line.get_bar_position(corner)
@@ -132,12 +132,17 @@ class Driver:
         
     def get_corner(self):
         now = time.monotonic()
-        MAX_LOOK_BACK_SEC = 1
-        for sav in reversed(self.sensor_array.history):
+        MAX_LOOK_BACK_SEC = 0.5
+        for sav_id ,sav in enumerate(reversed(self.sensor_array.history)):
             if now - sav.time > MAX_LOOK_BACK_SEC:
                 return False
             width = Line.get_bar_width(sav)
             if width > 2 and width < 5:
-                return sav
-            return False
-            
+                position = Line.get_bar_position(sav)
+                if position != 2:
+                    for sav_new_id, sav_new in enumerate(reversed(self.sensor_array.history)):
+                        if sav_id <= sav_new_id:
+                            return False
+                        if Line.is_something(sav_new) and (Line.get_bar_position(sav_new) - 2) * (position - 2) > 0:
+                            return sav
+        return False         

@@ -13,7 +13,7 @@ import microcontroller
 import time
 
 ACCELERATION = 250 # % per second
-SPIKE_HEIGHT = 1.5
+SPIKE_HEIGHT = 1.2
 
 class Motor:
     """Motor functions"""

@@ -81,6 +81,7 @@ class SensorArrayValue:
         ret = []
         for value in self._values:
             ret.append(str(value))
+        ret.append(str(self.time))
         return " ".join(ret)
 
     def __eq__(self, other: object) -> bool:
@@ -148,6 +149,7 @@ class SensorArray:
             ret.append(s.read())
         sav = SensorArrayValue(ret)
         if sav != self.history[-1]:
+            print("SENS:", sav)
             if len(self.history) >= self.history_length:
                 self.history.pop(0)
             self.history.append(sav)
