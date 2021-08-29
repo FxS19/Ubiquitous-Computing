@@ -1,4 +1,4 @@
-from math import exp, pi
+from math import e, exp, pi
 from sensor import SensorArray
 from motor import Vehicle
 from sensor import *
@@ -48,13 +48,15 @@ class Driver:
         # left and right is swapped automatically
 
         #   0           1           2
-        1: [(0.6,0.6),  (0,0.6),    (-0.6,0.6)],    #Bar width: 1
+        1: [(0.6,0.6),  (0.2,0.6),    (0,0.7)],    # Bar width: 1
         #   0,1         1,2
-        2: [(0.6,0.7),  (-0.6,0.6)],              # Bar width: 2
+        2: [(0.5,0.7),  (-0.6,0.6)],                # Bar width: 2
         #   1,0,1       0,1,2
-        3: [(0.6,0.6),  (-0.7,0)],                # Bar width: 3
+        3: [(0.6,0.6),  (-0.6,0.5)],                  # Bar width: 3 #corner
         #   1,0,1,2
-        4: [(-0.7,0)]                             # Bar width: 4
+        4: [(-0.6,0.5)],                              # Bar width: 4 #corner
+        #   2,1,0,1,2
+        5: [(0,0)]                                  # Bar width: 5 #corner
     }
 
     def __init__(self, sensor_array: SensorArray, vehicle: Vehicle, alarm_sec: float) -> None:
@@ -82,7 +84,7 @@ class Driver:
         #        " RAW: ", Line.get_bar(current_sensor_value)
         #        )
         corner = self.get_corner()
-        if corner and False:
+        if corner:
             #drive recent corner
             bar_width = Line.get_bar_width(corner)
             bar_position = Line.get_bar_position(corner)
@@ -129,20 +131,33 @@ class Driver:
                     self.vehicle.set_speed(MAX_SPEED, -MAX_SPEED)
                 else:
                     self.vehicle.set_speed(-MAX_SPEED, MAX_SPEED)
-        
-    def get_corner(self):
+
+    def get_corner(self) -> (bool(False) or SensorArrayValue):
         now = time.monotonic()
-        MAX_LOOK_BACK_SEC = 0.5
+        lost_line_after_corner=False
+        MIN_BAR_WIDTH = 2
+        MAX_LOOK_BACK_SEC = 1
+        border_id = 0
         for sav_id ,sav in enumerate(reversed(self.sensor_array.history)):
             if now - sav.time > MAX_LOOK_BACK_SEC:
                 return False
-            width = Line.get_bar_width(sav)
-            if width > 2 and width < 5:
-                position = Line.get_bar_position(sav)
-                if position != 2:
-                    for sav_new_id, sav_new in enumerate(reversed(self.sensor_array.history)):
-                        if sav_id <= sav_new_id:
-                            return False
-                        if Line.is_something(sav_new) and (Line.get_bar_position(sav_new) - 2) * (position - 2) > 0:
-                            return sav
-        return False         
+            if Line.get_bar_width(sav) > MIN_BAR_WIDTH: # detected the first corner
+                border_id = sav_id
+                break # no need for further investigation
+
+        test_pice = self.sensor_array.history[-(border_id+1):len(self.sensor_array.history)]
+        #first value is corner
+
+        corner_detected = False
+        for sav_id, sav, in enumerate(test_pice):
+            if Line.get_bar_width(sav) > MIN_BAR_WIDTH and abs(Line.get_bar_position(sav) - 2) >= 1: # Test is this looks like a corner
+                corner_detected = True
+            if corner_detected and sav == SensorValue.WHITE:
+                lost_line_after_corner = True
+            if lost_line_after_corner and abs(Line.get_bar_position(sav) - 2) <= 1:
+                return False #lost line, but is is now near center again
+            if test_pice[0].time - sav.time >= 0.05 and abs(Line.get_bar_position(sav) - 2) < 1:
+                return False #line is near center and time since corner is high enough
+        if corner_detected:
+            return test_pice[0]
+        return False

@@ -6,6 +6,7 @@
 # Group 1
 #
 
+
 from digitalio import DigitalInOut, Direction, Pull
 import microcontroller
 import time
@@ -81,7 +82,7 @@ class SensorArrayValue:
         ret = []
         for value in self._values:
             ret.append(str(value))
-        ret.append(str(self.time))
+        ret.append("{:.2f}".format(self.time))
         return " ".join(ret)
 
     def __eq__(self, other: object) -> bool:
@@ -126,6 +127,13 @@ class SensorArray:
                 SensorValue(SensorValue.WHITE),
                 SensorValue(SensorValue.WHITE)
     ])]
+    ''' sensor array history:
+
+    [0] = oldest  
+
+    len(x) = newest   
+
+    [old, , , , , new]'''
 
     def __init__(self, sensors) -> None:
         """All IR sensors
@@ -134,7 +142,7 @@ class SensorArray:
             sensors (Array<Sensor>): All Sensors
         """
         self._s=sensors
-        self.update()
+        self.update(lambda _: print(_))
     def read(self, id) -> SensorValue:
         """
         Read a sensor based on it's name
@@ -143,13 +151,14 @@ class SensorArray:
         """
         return self._s[id].read()
 
-    def update(self):
+    def update(self, printf):
         ret = []
         for s in self._s:
             ret.append(s.read())
         sav = SensorArrayValue(ret)
         if sav != self.history[-1]:
-            print("SENS:", sav)
+            printf(sav)
+            #print("SENS:", sav)
             if len(self.history) >= self.history_length:
                 self.history.pop(0)
             self.history.append(sav)

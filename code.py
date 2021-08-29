@@ -12,7 +12,6 @@ from motor import Motor, Vehicle
 from driver import Driver
 from sensor import *
 import neopixel
-import math
 
 periodic = {
     "driver": 0.05
@@ -32,6 +31,12 @@ last_second = 0
 pixel_onboard = neopixel.NeoPixel(board.NEOPIXEL, 1)
 pixel_onboard.brightness = 0.5
 
+def printf(sav: SensorArrayValue):
+    corner = ""
+    if driver.get_corner():
+        corner = "corner"
+    print("SENS:", sav, corner)
+
 
 while True:
     do_print = False
@@ -39,7 +44,7 @@ while True:
         last_second = time.monotonic()
         do_print = True
     # choose direction
-    sensor_array.update()
+    sensor_array.update(printf)
     driver.update()
     vehicle.update()
 
