@@ -41,7 +41,6 @@ class Line:
 
 class Driver:
     """Functions for driving"""
-    timer = 0
     speed_table = {
         # LL L C R RR
         # 2  1 0 1 2
@@ -64,16 +63,15 @@ class Driver:
         self.sensor_array = sensor_array
         self.__last_activated = time.monotonic()
         self.__alarm_sec = alarm_sec
-    
+
     def update(self):
-        """Driving function will only do something after at least self.__alarm_sec seconds"""
         if not self.__last_activated < time.monotonic() - self.__alarm_sec:
             return
         self.__last_activated = time.monotonic()
-        do_print = False
-        if time.monotonic() - self.timer > 1:
-            do_print = True
-            self.timer = time.monotonic()
+        self.hard_update()
+    
+    def hard_update(self):
+        """Driving function will only do something after at least self.__alarm_sec seconds"""
         
         current_sensor_value = self.sensor_array.history[-1]
 
@@ -99,7 +97,7 @@ class Driver:
             speed_r = self.vehicle.motor_r.get_speed()
             if speed_l * 1.5 > speed_r and speed_r * 1.5 > speed_l:
                 self.vehicle.set_speed(0,0)
-                if do_print: print("Streight to line, can't yet decide!")
+                print("Streight to line, can't yet decide!")
             else:
                 if speed_l > speed_r:
                     pass
