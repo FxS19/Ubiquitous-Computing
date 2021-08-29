@@ -47,6 +47,8 @@ while True:
 
     if time.monotonic() - timer > max_execution_time:
         pixel_onboard[0] = (255, 0, 0)
+    else:
+        pixel_onboard[0] = (0, 0, 0)
         #pixel_onboard[0] = (0, 0, 255 - math.floor(((time.monotonic() - timer)/max_execution_time)*255))
 
     if do_print and False:

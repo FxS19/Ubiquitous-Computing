@@ -41,21 +41,22 @@ class Line:
 
 class Driver:
     """Functions for driving"""
+
     speed_table = {
         # LL L C R RR
         # 2  1 0 1 2
         # left and right is swapped automatically
 
         #   0           1           2
-        1: [(0.6,0.6),  (0.2,0.6),    (0,0.7)],    # Bar width: 1
+        1: [(0.5,0.5),  (0.0,0.6),    (-0.2,0.6)],  #Bar width: 1
         #   0,1         1,2
-        2: [(0.5,0.7),  (-0.6,0.6)],                # Bar width: 2
+        2: [(0.4,0.5),  (-0.2,0.6)],              # Bar width: 2
         #   1,0,1       0,1,2
-        3: [(0.6,0.6),  (-0.6,0.5)],                  # Bar width: 3 #corner
+        3: [(0.5,0.5),  (-0.1,0.7)],                # Bar width: 3 #corner
         #   1,0,1,2
-        4: [(-0.6,0.5)],                              # Bar width: 4 #corner
+        4: [(-0.0,0.5)],                            # Bar width: 4 #corner
         #   2,1,0,1,2
-        5: [(0,0)]                                  # Bar width: 5 #corner
+        5: [(0,0)]                                # Bar width: 5 #corner
     }
 
     def __init__(self, sensor_array: SensorArray, vehicle: Vehicle, alarm_sec: float) -> None:
@@ -81,7 +82,7 @@ class Driver:
         #        " Bar width: ", Line.get_bar_width(current_sensor_value), 
         #        " RAW: ", Line.get_bar(current_sensor_value)
         #        )
-        corner = self.get_corner()
+        corner = False#self.get_corner()
         if corner:
             #drive recent corner
             bar_width = Line.get_bar_width(corner)
@@ -152,9 +153,9 @@ class Driver:
                 corner_detected = True
             if corner_detected and sav == SensorValue.WHITE:
                 lost_line_after_corner = True
-            if lost_line_after_corner and abs(Line.get_bar_position(sav) - 2) <= 1:
+            if lost_line_after_corner and abs(Line.get_bar_position(sav) - 2) <= 3:
                 return False #lost line, but is is now near center again
-            if test_pice[0].time - sav.time >= 0.05 and abs(Line.get_bar_position(sav) - 2) < 1:
+            if test_pice[0].time - sav.time >= 0.05 and abs(Line.get_bar_position(sav) - 2) < 3:
                 return False #line is near center and time since corner is high enough
         if corner_detected:
             return test_pice[0]
