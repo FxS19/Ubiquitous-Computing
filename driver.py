@@ -48,13 +48,13 @@ class Driver:
         # left and right is swapped automatically
 
         #   0           1           2
-        1: [(0.5,0.5),  (0.0,0.6),    (-0.2,0.6)],  #Bar width: 1
+        1: [(0.5,0.5),  (0.0,0.6),    (-0.2,0.7)],  #Bar width: 1
         #   0,1         1,2
-        2: [(0.4,0.5),  (-0.2,0.6)],              # Bar width: 2
+        2: [(0.5,0.6),  (-0.0,0.7)],              # Bar width: 2
         #   1,0,1       0,1,2
-        3: [(0.5,0.5),  (-0.1,0.7)],                # Bar width: 3 #corner
+        3: [(0.5,0.5),  (-0.2,0.7)],                # Bar width: 3 #corner
         #   1,0,1,2
-        4: [(-0.0,0.5)],                            # Bar width: 4 #corner
+        4: [(0.3,0.5)],                            # Bar width: 4 #corner
         #   2,1,0,1,2
         5: [(0,0)]                                # Bar width: 5 #corner
     }
@@ -82,7 +82,7 @@ class Driver:
         #        " Bar width: ", Line.get_bar_width(current_sensor_value), 
         #        " RAW: ", Line.get_bar(current_sensor_value)
         #        )
-        corner = False#self.get_corner()
+        corner = self.get_corner()
         if corner:
             #drive recent corner
             bar_width = Line.get_bar_width(corner)
@@ -139,8 +139,8 @@ class Driver:
         border_id = 0
         for sav_id ,sav in enumerate(reversed(self.sensor_array.history)):
             if now - sav.time > MAX_LOOK_BACK_SEC:
-                return False
-            if Line.get_bar_width(sav) > MIN_BAR_WIDTH: # detected the first corner
+                return False # No corner the last ... sec
+            if Line.get_bar_width(sav) > MIN_BAR_WIDTH: # detected first corner
                 border_id = sav_id
                 break # no need for further investigation
 
@@ -149,14 +149,14 @@ class Driver:
 
         corner_detected = False
         for sav_id, sav, in enumerate(test_pice):
-            if Line.get_bar_width(sav) > MIN_BAR_WIDTH and abs(Line.get_bar_position(sav) - 2) >= 1: # Test is this looks like a corner
+            if Line.get_bar_width(sav) > MIN_BAR_WIDTH and abs(Line.get_bar_position(sav) - 2) >= 0.5: # Test is this looks like a corner
                 corner_detected = True
             if corner_detected and sav == SensorValue.WHITE:
                 lost_line_after_corner = True
-            if lost_line_after_corner and abs(Line.get_bar_position(sav) - 2) <= 3:
+            if lost_line_after_corner and abs(Line.get_bar_position(sav) - 2) <= 2:
                 return False #lost line, but is is now near center again
-            if test_pice[0].time - sav.time >= 0.05 and abs(Line.get_bar_position(sav) - 2) < 3:
-                return False #line is near center and time since corner is high enough
+            if sav.time - test_pice[0].time >= 0.1 and abs(Line.get_bar_position(sav) - 2) <= 2:
+                return False #line is there and time since corner is high enough
         if corner_detected:
             return test_pice[0]
         return False
