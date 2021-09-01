@@ -1,6 +1,8 @@
 # Provide a basic playground
-#
+# 
+# use:
 # from debug import *
+# to start
 import math
 import board
 from motor import Motor, Vehicle

@@ -32,9 +32,12 @@ class Motor:
         self.__bwd_pin = bwd_pin
 
     def get_speed(self) -> int:
+        """Get the current speed of the motor. This is not the target speed!
+        Due to the resolution of the pwm signal used for the motor, it is likely that the set motor value could be a bit less or higher"""
         return math.floor(self.__current_speed / 650)
     
     def set_speed(self, value: int) -> None:
+        """Set the target speed of the motor, values from -100 to +100 are possible"""
         if self.__target == value: return
         self.__last = self.__estimate_speed(self.__last, self.__target)
         self.__time_speed_start = time.monotonic()
@@ -43,6 +46,7 @@ class Motor:
         self.set_speed_raw(math.floor(self.__target + delta * SPIKE_HEIGHT) * 650)
 
     def set_speed_raw (self, value: int) -> None:
+        """Set the speed with +/-int16_t"""
         if value < 0:
             if value < -65535: value = -65535
             self.__current_speed = value
@@ -59,9 +63,11 @@ class Motor:
             self.__bwd_pin.duty_cycle = 0
 
     def mod_speed(self, value: int):
+        """change the speed by a value between -100 and +100, if the result is outside 100% the maximum value is selected"""
         self.set_speed(self.get_speed() + value)
 
     def update(self):
+        """Update the set speed and the target speed of the motor."""
         if (self.__target - self.get_speed()) == 0: return # do nothing if targetspeed is reached
         needed_time = abs(self.__target - self.__last) / ACCELERATION
         percentage =  self.__get_current_runtime() / needed_time
@@ -80,18 +86,22 @@ class Motor:
         return target_speed
 
     def __get_current_runtime(self):
+        """Return the amount of that that passed since the last speed change"""
         return time.monotonic() - self.__time_speed_start
 
 
 class Vehicle:
+    """combine two motors to a Vehicle"""
     def __init__(self, motor_l: Motor, motor_r: Motor) -> None:
         self.motor_l = motor_l
         self.motor_r = motor_r
 
     def update(self):
+        """Update both motors"""
         self.motor_l.update()
         self.motor_r.update()
 
     def set_speed(self, left_speed, right_speed):
+        """Set the target speed of the vehicle"""
         self.motor_l.set_speed(left_speed)
         self.motor_r.set_speed(right_speed)

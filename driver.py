@@ -8,9 +8,12 @@ MAX_SPEED = 55
 
 class Line:
     def is_something(array_value: SensorArrayValue):
+        """test if there is some kind of line"""
         return array_value != SensorValue.WHITE
 
     def get_bar(array_value: SensorArrayValue):
+        """Get the position and the width of the line.  
+        If there are multiple possible answers the first thickest line is selected."""
         ctr = 0
         max = 0
         begin = 0
@@ -52,9 +55,9 @@ class Driver:
         #   0,1         1,2
         2: [(0.5,0.6),  (-0.0,0.7)],              # Bar width: 2
         #   1,0,1       0,1,2
-        3: [(0.5,0.5),  (-0.2,0.7)],                # Bar width: 3 #corner
+        3: [(0.5,0.5),  (-0.3,0.7)],                # Bar width: 3 #corner
         #   1,0,1,2
-        4: [(0.3,0.5)],                            # Bar width: 4 #corner
+        4: [(-0.4,0.55)],                            # Bar width: 4 #corner
         #   2,1,0,1,2
         5: [(0,0)]                                # Bar width: 5 #corner
     }
@@ -66,14 +69,14 @@ class Driver:
         self.__alarm_sec = alarm_sec
 
     def update(self):
+        """Perform an update of the decissions of driving functions. this function does nothing if there are less then alarm_sec seconds since the last call"""
         if not self.__last_activated < time.monotonic() - self.__alarm_sec:
             return
-        self.__last_activated = time.monotonic()
         self.hard_update()
     
     def hard_update(self):
-        """Driving function will only do something after at least self.__alarm_sec seconds"""
-        
+        """Perform an update of the decissions of driving functions."""
+        self.__last_activated = time.monotonic()
         current_sensor_value = self.sensor_array.history[-1]
 
         #if do_print: #DEBUG
@@ -132,6 +135,7 @@ class Driver:
                     self.vehicle.set_speed(-MAX_SPEED, MAX_SPEED)
 
     def get_corner(self) -> (bool(False) or SensorArrayValue):
+        """Search the history, if there is some kind of corner visible. If the robot has not found the line again this function will return the sensor values of that specific corner."""
         now = time.monotonic()
         lost_line_after_corner=False
         MIN_BAR_WIDTH = 2

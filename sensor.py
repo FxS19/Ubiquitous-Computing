@@ -12,6 +12,7 @@ import microcontroller
 import time
 
 class SensorValue:
+    """Value type of IR sensor"""
     WHITE = False
     BLACK = True
    
@@ -63,10 +64,12 @@ class Sensor:
         return self.read() == o.read()
 
 class SensorArrayValue:
+    """Value type of Sensor Array"""
     _values = []
     time = 0
 
     def all(self, color: SensorValue) -> bool:
+        """Check if all sensors look like the provided sensor"""
         c = 0
         for sens in self._values:
             if sens == color:
@@ -151,13 +154,14 @@ class SensorArray:
         """
         return self._s[id].read()
 
-    def update(self, printf):
+    def update(self, callback):
+        """update all Sensors, if something changed execute the callback function"""
         ret = []
         for s in self._s:
             ret.append(s.read())
         sav = SensorArrayValue(ret)
         if sav != self.history[-1]:
-            printf(sav)
+            callback(sav)
             #print("SENS:", sav)
             if len(self.history) >= self.history_length:
                 self.history.pop(0)
