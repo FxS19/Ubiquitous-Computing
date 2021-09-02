@@ -13,3 +13,11 @@ sensor_array = SensorArray([Sensor(board.IO9), Sensor(board.IO8), Sensor(board.I
 vehicle = Vehicle(motor_l= Motor(io_pin_fwd= board.IO14, io_pin_bwd= board.IO13), motor_r= Motor(io_pin_fwd= board.IO15, io_pin_bwd= board.IO16))
 driver = Driver(sensor_array, vehicle= vehicle, alarm_sec=0.05)
 
+def start_update():
+    while True:
+        vehicle.update()
+        sensor_array.update(lambda:False)
+
+def update():
+    vehicle.update()
+    sensor_array.update(lambda:False)

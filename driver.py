@@ -49,18 +49,23 @@ class Driver:
         # LL L C R RR
         # 2  1 0 1 2
         # left and right is swapped automatically
+        # Values for the right half of the sensor
 
-        #   0           1           2
-        1: [(0.5,0.5),  (0.0,0.6),    (-0.2,0.7)],  #Bar width: 1
+        #   0           1              2
+        1: [(0.5,0.5),  (0.6,0.4),    (0.7,0.1)],  #Bar width: 1
         #   0,1         1,2
-        2: [(0.5,0.6),  (-0.0,0.7)],              # Bar width: 2
+        2: [(0.6,0.3),  (0.7,-0.1)],                # Bar width: 2
         #   1,0,1       0,1,2
-        3: [(0.5,0.5),  (-0.3,0.7)],                # Bar width: 3 #corner
+        3: [(0.5,0.5),  (0.6, -0.5)],                # Bar width: 3 #corner
         #   1,0,1,2
-        4: [(-0.4,0.55)],                            # Bar width: 4 #corner
+        4: [(0.5,-0.5)],                           # Bar width: 4 #corner
         #   2,1,0,1,2
-        5: [(0,0)]                                # Bar width: 5 #corner
+        5: [(0,0)]                                  # Bar width: 5
     }
+
+    # Speed that weill be set if no line is visible, in direction to the Line. 
+    # Value for Line at the right
+    outside_line_speed = (0.7,-0.5)
 
     def __init__(self, sensor_array: SensorArray, vehicle: Vehicle, alarm_sec: float) -> None:
         self.vehicle = vehicle
@@ -78,68 +83,27 @@ class Driver:
         """Perform an update of the decissions of driving functions."""
         self.__last_activated = time.monotonic()
         current_sensor_value = self.sensor_array.history[-1]
-
-        #if do_print: #DEBUG
-        #    print(
-        #        "Bar center at: ", Line.get_bar_position(current_sensor_value), 
-        #        " Bar width: ", Line.get_bar_width(current_sensor_value), 
-        #        " RAW: ", Line.get_bar(current_sensor_value)
-        #        )
         corner = self.get_corner()
-        if corner:
+
+        if current_sensor_value == SensorValue.BLACK:
+            #all black 90 degree to line
+            self.__drive_mode_horizontal_line()
+        elif current_sensor_value == SensorValue.WHITE:
+            #Sensors complete white (end of line or line outside sensor array)
+            self.__drive_mode_blind()
+        elif corner:
             #drive recent corner
-            bar_width = Line.get_bar_width(corner)
-            bar_position = Line.get_bar_position(corner)
-            abs_bar_position = abs(bar_position - 2)
-            speed = self.speed_table[bar_width][int(abs_bar_position)]
-            if int(bar_position) < 2:
-                speed = tuple(reversed(speed))
-            self.vehicle.set_speed(speed[1] * MAX_SPEED, speed[0] * MAX_SPEED) 
-        elif current_sensor_value == SensorValue.BLACK:
-            #all black
-            speed_l = self.vehicle.motor_l.get_speed()
-            speed_r = self.vehicle.motor_r.get_speed()
-            if speed_l * 1.5 > speed_r and speed_r * 1.5 > speed_l:
-                self.vehicle.set_speed(0,0)
-                print("Streight to line, can't yet decide!")
-            else:
-                if speed_l > speed_r:
-                    pass
-                    #self.vehicle.set_speed(-1 * MAX_SPEED, 1 * MAX_SPEED)
-                else:
-                    pass
-                    #self.vehicle.set_speed(1 * MAX_SPEED, -1 * MAX_SPEED)
+            self.__drive_mode_corner(corner)
         elif current_sensor_value != SensorValue.WHITE:
             #normal drive
-            bar_width = Line.get_bar_width(current_sensor_value)
-            bar_position = Line.get_bar_position(current_sensor_value)
-            abs_bar_position = abs(bar_position - 2)
-            speed = self.speed_table[bar_width][int(abs_bar_position)]
-            if int(bar_position) < 2:
-                speed = tuple(reversed(speed))
-            self.vehicle.set_speed(speed[1] * MAX_SPEED, speed[0] * MAX_SPEED)      
-        elif current_sensor_value == SensorValue.WHITE:
-            #Sensors complete white (end of line or between Sensors)
-            return
-            last_rev_id = 0
-            last_valid_line = self.sensor_array.history[0]
-            for id, sensor_array in enumerate(reversed(self.sensor_array.history)):
-                if Line.is_something(sensor_array):
-                    last_valid_line = sensor_array
-                    last_rev_id = id
-            position = Line.get_bar_position(sensor_array)
-            if Line.is_bar(last_valid_line) or Line.is_between_sensor(last_valid_line):
-                if position > 2:
-                    self.vehicle.set_speed(MAX_SPEED, -MAX_SPEED)
-                else:
-                    self.vehicle.set_speed(-MAX_SPEED, MAX_SPEED)
+            self.__drive_mode_normal(current_sensor_value)
 
     def get_corner(self) -> (bool(False) or SensorArrayValue):
         """Search the history, if there is some kind of corner visible. If the robot has not found the line again this function will return the sensor values of that specific corner."""
         now = time.monotonic()
         lost_line_after_corner=False
         MIN_BAR_WIDTH = 2
-        MAX_LOOK_BACK_SEC = 1
+        MAX_LOOK_BACK_SEC = 2
         border_id = 0
         for sav_id ,sav in enumerate(reversed(self.sensor_array.history)):
             if now - sav.time > MAX_LOOK_BACK_SEC:
@@ -164,3 +128,53 @@ class Driver:
         if corner_detected:
             return test_pice[0]
         return False
+
+    def __drive_mode_normal(self, current_sensor_value):
+        """Drive by the defined values"""
+        bar_width = Line.get_bar_width(current_sensor_value)
+        bar_position = Line.get_bar_position(current_sensor_value)
+        abs_bar_position = abs(bar_position - 2)
+        speed = self.speed_table[bar_width][int(abs_bar_position)]
+        if int(bar_position) < 2:
+            speed = tuple(reversed(speed))
+        self.vehicle.set_speed(speed[0] * MAX_SPEED, speed[1] * MAX_SPEED)
+
+    def __drive_mode_blind(self):
+        """Sensors complete white (end of line or line outside sensor array)"""
+
+        last_valid_line_position = False
+        for sensor_array in reversed(self.sensor_array.history):
+            if Line.is_something(sensor_array) and Line.get_bar_position(sensor_array) != 2:
+                last_valid_line_position = Line.get_bar_position(sensor_array) - 2
+                break
+        if last_valid_line_position:
+            print(last_valid_line_position)
+            if last_valid_line_position > 0:
+                self.vehicle.set_speed(self.outside_line_speed[0] * MAX_SPEED, self.outside_line_speed[1] * MAX_SPEED)
+            else:
+                self.vehicle.set_speed(self.outside_line_speed[1] * MAX_SPEED, self.outside_line_speed[0] * MAX_SPEED)
+    
+    def __drive_mode_horizontal_line(self):
+        """All sensors are black, in 90 degfrees to line -> something went wrong before"""
+        speed_l = self.vehicle.motor_l.get_speed()
+        speed_r = self.vehicle.motor_r.get_speed()
+        if speed_l * 1.5 > speed_r and speed_r * 1.5 > speed_l:
+            self.vehicle.set_speed(0,0)
+            print("Streight to line, can't yet decide!")
+        else:
+            if speed_l > speed_r:
+                pass
+                #self.vehicle.set_speed(-1 * MAX_SPEED, 1 * MAX_SPEED)
+            else:
+                pass
+                #self.vehicle.set_speed(1 * MAX_SPEED, -1 * MAX_SPEED)
+    
+    def __drive_mode_corner(self, corner):
+        """Drive around a corner -> two effective modes are available, speed defined in list above"""
+        bar_width = Line.get_bar_width(corner)
+        bar_position = Line.get_bar_position(corner)
+        abs_bar_position = abs(bar_position - 2)
+        speed = self.speed_table[bar_width][int(abs_bar_position)]
+        if int(bar_position) < 2:
+            speed = tuple(reversed(speed))
+        self.vehicle.set_speed(speed[0] * MAX_SPEED, speed[1] * MAX_SPEED) 

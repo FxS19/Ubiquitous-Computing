@@ -64,6 +64,8 @@ while True:
 
     if driver.get_corner():
         pixel_onboard[0] = (0, 128, 0)
+    elif driver.sensor_array.history[-1] == SensorValue.WHITE:
+        pixel_onboard[0] = (0,0,128)
     else:
         pixel_onboard[0] = (0,0,0)
     timer = time.monotonic()
