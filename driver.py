@@ -4,7 +4,7 @@ from motor import Vehicle
 from sensor import *
 import time
 
-MAX_SPEED = 55
+MAX_SPEED = 52
 
 class Line:
     def is_something(array_value: SensorArrayValue):
@@ -52,11 +52,11 @@ class Driver:
         # Values for the right half of the sensor
 
         #   0           1              2
-        1: [(0.5,0.5),  (0.6,0.4),    (0.7,0.1)],  #Bar width: 1
+        1: [(0.5,0.5),  (0.6,0.4),    (0.75,0.2)],  #Bar width: 1
         #   0,1         1,2
-        2: [(0.6,0.3),  (0.7,-0.1)],                # Bar width: 2
+        2: [(0.5,0.4),  (0.6,-0.1)],                # Bar width: 2
         #   1,0,1       0,1,2
-        3: [(0.5,0.5),  (0.6, -0.5)],                # Bar width: 3 #corner
+        3: [(0.5,0.5),  (0.7, -0.5)],                # Bar width: 3 #corner
         #   1,0,1,2
         4: [(0.5,-0.5)],                           # Bar width: 4 #corner
         #   2,1,0,1,2
