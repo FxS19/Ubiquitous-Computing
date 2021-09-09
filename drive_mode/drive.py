@@ -1,4 +1,4 @@
-race_mode = {
+{
     "max_speed": 45,
     "speed_table": {
         # LL L C R RR
