@@ -2,14 +2,11 @@ from math import e, exp, pi
 from sensor import SensorArray
 from motor import Vehicle
 from sensor import *
-import data_race_mode
+import drive_mode.race
+import drive_mode.drive
 import time
 
-mode = "race_mode"
-
-speed_data = {
-    "race_mode": data_race_mode.race_mode
-}
+mode = "drive"
 
 class Line:
     def is_something(array_value: SensorArrayValue):
@@ -120,11 +117,11 @@ class Driver:
 
     def __drive_mode_normal(self, current_sensor_value):
         """Drive by the defined values"""
-        max_speed = speed_data[mode]["max_speed"]
+        max_speed = drive_mode[mode]["max_speed"]
         bar_width = Line.get_bar_width(current_sensor_value)
         bar_position = Line.get_bar_position(current_sensor_value)
         abs_bar_position = abs(bar_position - 2)
-        speed = speed_data[mode]["speed_table"][bar_width][int(abs_bar_position)]
+        speed = drive_mode[mode]["speed_table"][bar_width][int(abs_bar_position)]
         if int(bar_position) < 2:
             speed = tuple(reversed(speed))
         self.vehicle.set_speed(speed[0] * max_speed, speed[1] * max_speed)
@@ -132,7 +129,7 @@ class Driver:
     def __drive_mode_blind(self):
         """Sensors complete white (end of line or line outside sensor array)"""
 
-        max_speed = speed_data[mode]["max_speed"]
+        max_speed = drive_mode[mode]["max_speed"]
         last_valid_line_position = False
         for sensor_array in reversed(self.sensor_array.history):
             if Line.is_something(sensor_array) and Line.get_bar_position(sensor_array) != 2:
@@ -162,11 +159,11 @@ class Driver:
     
     def __drive_mode_corner(self, corner):
         """Drive around a corner -> two effective modes are available, speed defined in list above"""
-        max_speed = speed_data[mode]["max_speed"]
+        max_speed = drive_mode[mode]["max_speed"]
         bar_width = Line.get_bar_width(corner)
         bar_position = Line.get_bar_position(corner)
         abs_bar_position = abs(bar_position - 2)
-        speed = speed_data[mode]["speed_table"][bar_width][int(abs_bar_position)]
+        speed = drive_mode[mode]["speed_table"][bar_width][int(abs_bar_position)]
         if int(bar_position) < 2:
             speed = tuple(reversed(speed))
         self.vehicle.set_speed(speed[0] * max_speed, speed[1] * max_speed) 
