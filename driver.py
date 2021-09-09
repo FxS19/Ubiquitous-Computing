@@ -4,7 +4,7 @@ from motor import Vehicle
 from sensor import *
 import time
 
-MAX_SPEED = 52
+MAX_SPEED = 45
 
 class Line:
     def is_something(array_value: SensorArrayValue):
