@@ -85,7 +85,7 @@ class SensorArrayValue:
         ret = []
         for value in self._values:
             ret.append(str(value))
-        ret.append("{:.2f}".format(self.time))
+        #ret.append("{:.2f}".format(self.time))
         return " ".join(ret)
 
     def __eq__(self, other: object) -> bool:

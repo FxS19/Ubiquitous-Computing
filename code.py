@@ -14,6 +14,31 @@ from sensor import *
 import neopixel
 
 
+import displayio
+import terminalio
+from adafruit_display_text import label
+import adafruit_displayio_ssd1306
+
+displayio.release_displays()
+
+i2c = board.I2C()
+display_bus = displayio.I2CDisplay(i2c, device_address=0x3C)
+display = adafruit_displayio_ssd1306.SSD1306(display_bus, width=128, height=64)
+
+# Make the display context
+
+splash = displayio.Group()
+display.show(splash)
+
+# bg_sprite = displayio.TileGrid(color_bitmap, pixel_shader=color_palette_black, x=0, y=0)
+# splash.append(bg_sprite)
+
+# # Draw a label
+# text = "Hello World!"
+# text_area = label.Label(terminalio.FONT, text=text, color=0xFFFF00, x=0, y=4)
+# splash.append(text_area)
+
+
 max_execution_time = 0.05
 
 
@@ -45,24 +70,12 @@ while True:
     driver.update() #force regular updates
     vehicle.update()
 
+    if do_print:
+        pass
+
     if time.monotonic() - timer > max_execution_time:
         pixel_onboard[0] = (255, 0, 0)
-    else:
-        pixel_onboard[0] = (0, 0, 0)
-        #pixel_onboard[0] = (0, 0, 255 - math.floor(((time.monotonic() - timer)/max_execution_time)*255))
-
-    if do_print and False:
-        print("- - - - - - - - - - - - - - - - - - -")
-        print("CPU: ", ((time.monotonic() - timer)/max_execution_time)*100, "%")
-        print("MOT:","left: " + str(vehicle.motor_l.__target), "right: " + str(vehicle.motor_r.__target))
-        for id,val in enumerate(reversed(list(map(str,sensor_array.history)))): 
-            if id < 10:
-                print(-id,"\t",val)
-            else:
-                continue
-        print()
-
-    if driver.get_corner():
+    elif driver.get_corner():
         pixel_onboard[0] = (0, 128, 0)
     elif driver.sensor_array.history[-1] == SensorValue.WHITE:
         pixel_onboard[0] = (0,0,128)
