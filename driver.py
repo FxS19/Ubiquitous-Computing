@@ -5,6 +5,7 @@ from sensor import *
 import drive_mode.race
 import drive_mode.drive
 import time
+from print import print_d
 
 mode = "drive"
 
@@ -136,7 +137,6 @@ class Driver:
                 last_valid_line_position = Line.get_bar_position(sensor_array) - 2
                 break
         if last_valid_line_position:
-            print(last_valid_line_position)
             if last_valid_line_position > 0:
                 self.vehicle.set_speed(self.outside_line_speed[0] * max_speed, self.outside_line_speed[1] * max_speed)
             else:
@@ -148,7 +148,7 @@ class Driver:
         speed_r = self.vehicle.motor_r.get_speed()
         if speed_l * 1.5 > speed_r and speed_r * 1.5 > speed_l:
             self.vehicle.set_speed(0,0)
-            print("Streight to line, can't yet decide!")
+            print_d("Streight to line, can't yet decide!")
         else:
             if speed_l > speed_r:
                 pass

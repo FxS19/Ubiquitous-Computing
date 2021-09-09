@@ -13,11 +13,12 @@ from driver import Driver, Line
 from sensor import *
 import neopixel
 
-
 import displayio
 import terminalio
 from adafruit_display_text import label
 import adafruit_displayio_ssd1306
+
+from print import print_d
 
 displayio.release_displays()
 
@@ -57,7 +58,7 @@ def sens_update_callback(sav: SensorArrayValue):
     corner = ""
     if driver.get_corner():
         corner = "corner"
-    print("SENS:", sav, "{:.1f}".format(Line.get_bar_position(sav)), "\t" , "{:.0f}".format(Line.get_bar_width(sav)), corner)
+    print_d("SENS:", sav, "{:.1f}".format(Line.get_bar_position(sav)), "\t" , "{:.0f}".format(Line.get_bar_width(sav)), corner)
 
 
 while True:

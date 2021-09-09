@@ -10,6 +10,7 @@
 from digitalio import DigitalInOut, Direction, Pull
 import microcontroller
 import time
+from print import print_d
 
 class SensorValue:
     """Value type of IR sensor"""
@@ -145,7 +146,7 @@ class SensorArray:
             sensors (Array<Sensor>): All Sensors
         """
         self._s=sensors
-        self.update(lambda _: print(_))
+        self.update(lambda _: print_d(_))
     def read(self, id) -> SensorValue:
         """
         Read a sensor based on it's name
@@ -162,7 +163,7 @@ class SensorArray:
         sav = SensorArrayValue(ret)
         if sav != self.history[-1]:
             callback(sav)
-            #print("SENS:", sav)
+            print_d("SENS:", sav)
             if len(self.history) >= self.history_length:
                 self.history.pop(0)
             self.history.append(sav)
