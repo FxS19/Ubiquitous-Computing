@@ -1,5 +1,5 @@
 {
-    "max_speed": 55,
+    "max_speed": 52,
     "speed_table": {
         # LL L C R RR
         # 2  1 0 1 2
