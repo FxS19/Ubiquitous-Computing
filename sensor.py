@@ -1,31 +1,28 @@
+"""
+Sensoren
+Board: Metro M4 Express
+AZ-Delivery IR-digital Sensoren
+Group 1
+"""
 
-#
-# Sensoren
-# Board: Metro M4 Express
-# AZ-Delivery IR-digital Sensoren
-# Group 1
-#
-
-
+import time
 from digitalio import DigitalInOut, Direction, Pull
 import microcontroller
-import time
 from print import print_d
 
 class SensorValue:
     """Value type of IR sensor"""
     WHITE = False
     BLACK = True
-   
+
     def __init__(self, value) -> None:
         self.__value = value
-    
+
     def __str__(self) -> str:
         """Return the value of this sensor as a single character String for better Reading"""
         if self.__value:
             return "X"
-        else:
-            return "-"
+        return "-"
 
     def __eq__(self, o: object) -> bool:
         if isinstance(o, bool):
@@ -48,15 +45,15 @@ class Sensor:
         s.direction = Direction.INPUT
         s.pull = Pull.UP
         self._sensor = s
-    
+
     def read(self) -> SensorValue:
         """Return the Value of this Sensor"""
         return SensorValue(self._sensor.value)
-    
+
     def __str__(self):
         """Return the value of this sensor as a single character String for better Reading"""
         return str(self.read())
-    
+
     def __eq__(self, o: object) -> bool:
         if isinstance(o, SensorValue):
             return self.read() == o
@@ -96,23 +93,22 @@ class SensorArrayValue:
             return self.all(SensorValue(other))
         elif isinstance(other, SensorArrayValue):
             ok = True
-            for id, selfvalue in enumerate(self._values):
-                if selfvalue != other[id] and ok:
+            for value_id, selfvalue in enumerate(self._values):
+                if selfvalue != other[value_id] and ok:
                     ok = False
             return ok
-        else:
-            NotImplemented
+        NotImplemented
 
-    def __getitem__(self, id):
-        return self._values[id]
+    def __getitem__(self, sav_id):
+        return self._values[sav_id]
 
     def get_time_difference(self, other):
+        """return the difference of time between this and another SensorArrayValue"""
         if isinstance(other, SensorArrayValue):
             return self.time - other.time
         elif isinstance(other, int):
             return self.time - other
-        else:
-            NotImplemented
+        NotImplemented
 
 
 class SensorArray:
@@ -125,7 +121,7 @@ class SensorArray:
     RIGHT_RIGHT = 0
     history_length = 30
     history = [SensorArrayValue([
-                SensorValue(SensorValue.WHITE), 
+                SensorValue(SensorValue.WHITE),
                 SensorValue(SensorValue.WHITE),
                 SensorValue(SensorValue.WHITE),
                 SensorValue(SensorValue.WHITE),
@@ -133,9 +129,9 @@ class SensorArray:
     ])]
     ''' sensor array history:
 
-    [0] = oldest  
+    [0] = oldest
 
-    len(x) = newest   
+    len(x) = newest
 
     [old, , , , , new]'''
 
@@ -145,15 +141,15 @@ class SensorArray:
         Args:
             sensors (Array<Sensor>): All Sensors
         """
-        self._s=sensors
-        self.update(lambda _: print_d(_))
-    def read(self, id) -> SensorValue:
+        self._s = sensors
+        self.update(print_d)
+    def read(self, sensor_id) -> SensorValue:
         """
         Read a sensor based on it's name
 
         Use SensorArray.[LEFT_LEFT, LEFT, CENTER, RIGHT, RIGHT_RIGHT] to index
         """
-        return self._s[id].read()
+        return self._s[sensor_id].read()
 
     def update(self, callback):
         """update all Sensors, if something changed execute the callback function"""
@@ -172,16 +168,17 @@ class SensorArray:
         """Return all Sensor Values as an Array
 
         Returns:
-            Array<SensorValue>: Use SensorArray.[LEFT_LEFT, LEFT, CENTER, RIGHT, RIGHT_RIGHT] to index
+            Array<SensorValue>:
+            Use SensorArray.[LEFT_LEFT, LEFT, CENTER, RIGHT, RIGHT_RIGHT] to index
         """
-        self.update()     
+        self.update(print_d)
         return self.history
-    
+
     def __str__(self) -> str:
         ret = []
         for value in self.history:
             ret.append(str(value))
         return "->".join(ret)
 
-    def __getitem__(self, id) -> Sensor:
-        return self._s[id]
+    def __getitem__(self, sa_id) -> Sensor:
+        return self._s[sa_id]

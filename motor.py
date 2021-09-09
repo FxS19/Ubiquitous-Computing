@@ -1,16 +1,15 @@
-#
-# engine control
-# Board: Metro ESP32 S2 BETA
-# Adafruit DRV8871 Brushed DC Motor Driver
-# 18.06.21 - wb
-# v0.2
-#
+"""
+engine control
+Board: Metro ESP32 S2 BETA
+Adafruit DRV8871 Brushed DC Motor Driver
+10.09.21 - group 1
+v0.2
+"""
 
+import time
 import math
-from board import SPI
 import pulseio
 import microcontroller
-import time
 
 ACCELERATION = 250 # % per second
 SPIKE_HEIGHT = 1.2
@@ -33,27 +32,31 @@ class Motor:
 
     def get_speed(self) -> int:
         """Get the current speed of the motor. This is not the target speed!
-        Due to the resolution of the pwm signal used for the motor, it is likely that the set motor value could be a bit less or higher"""
+        Due to the resolution of the pwm signal used for the motor,
+        it is likely that the set motor value could be a bit less or higher"""
         return math.floor(self.__current_speed / 650)
-    
+
     def set_speed(self, value: int) -> None:
         """Set the target speed of the motor, values from -100 to +100 are possible"""
-        if self.__target == value: return
+        if self.__target == value:
+            return
         self.__last = self.__estimate_speed(self.__last, self.__target)
         self.__time_speed_start = time.monotonic()
         self.__target = value
         delta = self.__target - self.__last
         self.set_speed_raw(math.floor(self.__target + delta * SPIKE_HEIGHT) * 650)
 
-    def set_speed_raw (self, value: int) -> None:
+    def set_speed_raw(self, value: int) -> None:
         """Set the speed with +/-int16_t"""
         if value < 0:
-            if value < -65535: value = -65535
+            if value < -65535:
+                value = -65535
             self.__current_speed = value
             self.__fwd_pin.duty_cycle = 0
             self.__bwd_pin.duty_cycle = -value #between 0 and 65535 -> approximation
         elif value > 0:
-            if value > 65535: value = 65535
+            if value > 65535:
+                value = 65535
             self.__current_speed = value
             self.__fwd_pin.duty_cycle = value #between 0 and 65535 -> approximation
             self.__bwd_pin.duty_cycle = 0
@@ -63,21 +66,24 @@ class Motor:
             self.__bwd_pin.duty_cycle = 0
 
     def mod_speed(self, value: int):
-        """change the speed by a value between -100 and +100, if the result is outside 100% the maximum value is selected"""
+        """change the speed by a value between -100 and +100,
+        if the result is outside 100% the maximum value is selected"""
         self.set_speed(self.get_speed() + value)
 
     def update(self):
         """Update the set speed and the target speed of the motor."""
-        if (self.__target - self.get_speed()) == 0: return # do nothing if targetspeed is reached
+        if (self.__target - self.get_speed()) == 0:
+            return # do nothing if targetspeed is reached
         needed_time = abs(self.__target - self.__last) / ACCELERATION
-        percentage =  self.__get_current_runtime() / needed_time
-        if percentage > 1: percentage = 1
+        percentage = self.__get_current_runtime() / needed_time
+        if percentage > 1:
+            percentage = 1
         delta = self.__target - self.__last
         self.set_speed_raw(math.floor(self.__target + delta * SPIKE_HEIGHT * (1-percentage)) * 650)
 
     def __estimate_speed(self, begin_speed, target_speed):
         """
-        working with linear acceleration, could be imperfect 
+        working with linear acceleration, could be imperfect
         TODO use degression
         """
         runtime = self.__get_current_runtime()
