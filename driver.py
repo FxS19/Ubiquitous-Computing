@@ -2,9 +2,14 @@ from math import e, exp, pi
 from sensor import SensorArray
 from motor import Vehicle
 from sensor import *
+import data_race_mode
 import time
 
-MAX_SPEED = 45
+mode = "race_mode"
+
+speed_data = {
+    "race_mode": data_race_mode.race_mode
+}
 
 class Line:
     def is_something(array_value: SensorArrayValue):
@@ -45,23 +50,7 @@ class Line:
 class Driver:
     """Functions for driving"""
 
-    speed_table = {
-        # LL L C R RR
-        # 2  1 0 1 2
-        # left and right is swapped automatically
-        # Values for the right half of the sensor
-
-        #   0           1              2
-        1: [(0.5,0.5),  (0.6,0.4),    (0.75,0.2)],  #Bar width: 1
-        #   0,1         1,2
-        2: [(0.5,0.4),  (0.6,-0.1)],                # Bar width: 2
-        #   1,0,1       0,1,2
-        3: [(0.5,0.5),  (0.7, -0.5)],                # Bar width: 3 #corner
-        #   1,0,1,2
-        4: [(0.5,-0.5)],                           # Bar width: 4 #corner
-        #   2,1,0,1,2
-        5: [(0,0)]                                  # Bar width: 5
-    }
+    ##Speedtable
 
     # Speed that weill be set if no line is visible, in direction to the Line. 
     # Value for Line at the right
@@ -131,17 +120,19 @@ class Driver:
 
     def __drive_mode_normal(self, current_sensor_value):
         """Drive by the defined values"""
+        max_speed = speed_data[mode]["max_speed"]
         bar_width = Line.get_bar_width(current_sensor_value)
         bar_position = Line.get_bar_position(current_sensor_value)
         abs_bar_position = abs(bar_position - 2)
-        speed = self.speed_table[bar_width][int(abs_bar_position)]
+        speed = speed_data[mode]["speed_table"][bar_width][int(abs_bar_position)]
         if int(bar_position) < 2:
             speed = tuple(reversed(speed))
-        self.vehicle.set_speed(speed[0] * MAX_SPEED, speed[1] * MAX_SPEED)
+        self.vehicle.set_speed(speed[0] * max_speed, speed[1] * max_speed)
 
     def __drive_mode_blind(self):
         """Sensors complete white (end of line or line outside sensor array)"""
 
+        max_speed = speed_data[mode]["max_speed"]
         last_valid_line_position = False
         for sensor_array in reversed(self.sensor_array.history):
             if Line.is_something(sensor_array) and Line.get_bar_position(sensor_array) != 2:
@@ -150,9 +141,9 @@ class Driver:
         if last_valid_line_position:
             print(last_valid_line_position)
             if last_valid_line_position > 0:
-                self.vehicle.set_speed(self.outside_line_speed[0] * MAX_SPEED, self.outside_line_speed[1] * MAX_SPEED)
+                self.vehicle.set_speed(self.outside_line_speed[0] * max_speed, self.outside_line_speed[1] * max_speed)
             else:
-                self.vehicle.set_speed(self.outside_line_speed[1] * MAX_SPEED, self.outside_line_speed[0] * MAX_SPEED)
+                self.vehicle.set_speed(self.outside_line_speed[1] * max_speed, self.outside_line_speed[0] * max_speed)
     
     def __drive_mode_horizontal_line(self):
         """All sensors are black, in 90 degfrees to line -> something went wrong before"""
@@ -171,10 +162,11 @@ class Driver:
     
     def __drive_mode_corner(self, corner):
         """Drive around a corner -> two effective modes are available, speed defined in list above"""
+        max_speed = speed_data[mode]["max_speed"]
         bar_width = Line.get_bar_width(corner)
         bar_position = Line.get_bar_position(corner)
         abs_bar_position = abs(bar_position - 2)
-        speed = self.speed_table[bar_width][int(abs_bar_position)]
+        speed = speed_data[mode]["speed_table"][bar_width][int(abs_bar_position)]
         if int(bar_position) < 2:
             speed = tuple(reversed(speed))
-        self.vehicle.set_speed(speed[0] * MAX_SPEED, speed[1] * MAX_SPEED) 
+        self.vehicle.set_speed(speed[0] * max_speed, speed[1] * max_speed) 
