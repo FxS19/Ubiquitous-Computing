@@ -80,9 +80,6 @@ while True:
     driver.update() #force regular updates
     vehicle.update()
 
-    if do_print:
-        pass
-
     if time.monotonic() - timer > max_execution_time:
         pixel_onboard[0] = (255, 0, 0)
     elif driver.get_corner():
