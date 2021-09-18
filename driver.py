@@ -59,7 +59,7 @@ class Driver:
 
     # Speed that weill be set if no line is visible, in direction to the Line.
     # Value for Line at the right
-    outside_line_speed = (0.7, -0.5)
+    
 
     def __init__(self, sensor_array: SensorArray, vehicle: Vehicle, alarm_sec: float, mode: str) -> None:
         self.vehicle = vehicle
@@ -159,12 +159,12 @@ class Driver:
         if last_valid_line_position:
             if last_valid_line_position > 0:
                 self.vehicle.set_speed(
-                    self.outside_line_speed[0] * max_speed,
-                    self.outside_line_speed[1] * max_speed)
+                    drive_modes[self.mode]["outside_line_speed"][0] * max_speed,
+                    drive_modes[self.mode]["outside_line_speed"][1] * max_speed)
             else:
                 self.vehicle.set_speed(
-                    self.outside_line_speed[1] * max_speed,
-                    self.outside_line_speed[0] * max_speed)
+                    drive_modes[self.mode]["outside_line_speed"][1] * max_speed,
+                    drive_modes[self.mode]["outside_line_speed"][0] * max_speed)
 
     def __drive_mode_horizontal_line(self):
         """All sensors are black, in 90 degfrees to line -> something went wrong before"""

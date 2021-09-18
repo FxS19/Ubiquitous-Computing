@@ -11,8 +11,8 @@ import math
 import pulseio
 import microcontroller
 
-ACCELERATION = 250 # % per second
-SPIKE_HEIGHT = 1.2
+ACCELERATION = 1000#250 # % per second
+SPIKE_HEIGHT = 1.02#1.2
 
 class Motor:
     """Motor functions"""
@@ -86,6 +86,7 @@ class Motor:
         working with linear acceleration, could be imperfect
         TODO use degression
         """
+
         runtime = self.__get_current_runtime()
         if runtime * ACCELERATION + begin_speed < target_speed:
             return math.floor(begin_speed + runtime * ACCELERATION)

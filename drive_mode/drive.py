@@ -1,5 +1,5 @@
 value = {
-    "max_speed": 45,
+    "max_speed": 53,
     "speed_table": {
         # LL L C R RR
         # 2  1 0 1 2
@@ -15,6 +15,7 @@ value = {
         #   1,0,1,2
         4: [(0.5,-0.5)],                           # Bar width: 4 #corner
         #   2,1,0,1,2
-        5: [(0,0)]                                  # Bar width: 5
-    }
+        5: [(0,0)]                                 # Bar width: 5
+    },
+	"outside_line_speed": (0.7, -0.5)
 }

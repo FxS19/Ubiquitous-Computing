@@ -16,5 +16,6 @@ value = {
         4: [(0.5,-0.5)],                           # Bar width: 4 #corner
         #   2,1,0,1,2
         5: [(0,0)]   
-    }
+    },
+	"outside_line_speed": (0.7, -0.5)
 }
