@@ -1,4 +1,4 @@
-{
+value = {
     "max_speed": 52,
     "speed_table": {
         # LL L C R RR

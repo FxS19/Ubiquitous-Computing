@@ -3,6 +3,7 @@
 
 wdir=$(pwd)
 cp *.py /media/$USER/CIRCUITPY/
+cp -r drive_mode /media/$USER/CIRCUITPY/
 cp -r lib /media/$USER/CIRCUITPY/
 cd /media/$USER/CIRCUITPY/
 sleep 1
