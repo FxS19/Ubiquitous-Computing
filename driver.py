@@ -4,76 +4,59 @@ Board: Metro ESP32 S2 BETA
 10.09.21 - group 1
 """
 
+from line import Line
 import time
+import board
+from motor import Motor
+from neopixel import NeoPixel
+from sensor import Sensor
 from motor import Vehicle
-from sensor import SensorValue, SensorArrayValue, SensorArray
+from sensor import SensorValue
+from sensorarray import SensorArrayValue, SensorArray
 import drive_mode.race
 import drive_mode.drive
 from print import print_d
+from line import Line
 
 drive_modes = {
     "race": drive_mode.race.value,
     "drive": drive_mode.drive.value
 }
 
-class Line:
-    """Functions for detecting the line inside a SensorArrayValue"""
-    def is_something(array_value: SensorArrayValue):
-        """test if there is some kind of line"""
-        return array_value != SensorValue.WHITE
-
-    def get_bar(array_value: SensorArrayValue):
-        """Get the position and the width of the line.
-        If there are multiple possible answers the first thickest line is selected."""
-        ctr = 0
-        max_ctr = 0
-        begin = 0
-        begin_max = 0
-        for s_id, sensor in enumerate(array_value):
-            if sensor == SensorValue.BLACK:
-                ctr += 1
-                if ctr > max_ctr:
-                    max_ctr = ctr
-                    begin_max = begin
-            else:
-                ctr = 0
-                begin = s_id + 1
-        if max_ctr == 0:
-            return (0, 0)
-        return (begin_max, max_ctr)
-
-    def get_bar_width(array_value: SensorArrayValue):
-        """Return the number of sensors that are active in one row"""
-        _, max_value = Line.get_bar(array_value)
-        return max_value
-
-    def get_bar_position(array_value: SensorArrayValue):
-        """Return between 0 and 4"""
-        begin_max, max_length = Line.get_bar(array_value)
-        if max_length % 2 == 1:
-            return begin_max + (max_length - 1) / 2.0
-        return begin_max + max_length / 2.0 - 0.5
-
 class Driver:
     """Functions for driving"""
 
-    # Speed that weill be set if no line is visible, in direction to the Line.
-    # Value for Line at the right
-    
+    def __init__(self, mode: str, neopixel: NeoPixel) -> None:
+        # Init Sensors
+        self.sensor_array = SensorArray([
+            Sensor(board.IO9),
+            Sensor(board.IO8),
+            Sensor(board.IO7),
+            Sensor(board.IO6),
+            Sensor(board.IO5)])
 
-    def __init__(self, sensor_array: SensorArray, vehicle: Vehicle, alarm_sec: float, mode: str) -> None:
-        self.vehicle = vehicle
-        self.sensor_array = sensor_array
+        # Init motors
+        self.vehicle = Vehicle(
+            motor_l=Motor(io_pin_fwd=board.IO14, io_pin_bwd=board.IO13),
+            motor_r=Motor(io_pin_fwd=board.IO15, io_pin_bwd=board.IO16))
         self.__last_activated = time.monotonic()
-        self.__alarm_sec = alarm_sec
+        self.__alarm_sec = 0.05
         self.mode = mode
+        self.neopixel = neopixel
+        self.timer = 0
 
-    def update(self):
-        """Perform an update of the decissions of driving functions.
+    def start(self):
+        """Perform updates of the decissions of driving functions.
         This function does nothing if there are less then alarm_sec seconds since the last call"""
-        if not self.__last_activated < time.monotonic() - self.__alarm_sec:
-            return
-        self.hard_update()
+        while True:
+            self.sensor_array.update(self.sens_update_callback)
+            self.vehicle.update()
+            if time.monotonic() - self.timer > self.__alarm_sec:
+                self.neopixel[0] = (255, 0, 0)
+            self.timer = time.monotonic()
+
+            if self.__last_activated < time.monotonic() - self.__alarm_sec:
+                self.hard_update()
 
     def hard_update(self):
         """Perform an update of the decissions of driving functions."""
@@ -87,12 +70,15 @@ class Driver:
         elif current_sensor_value == SensorValue.WHITE:
             #Sensors complete white (end of line or line outside sensor array)
             self.__drive_mode_blind()
+            self.neopixel[0] = (0, 0, 128)
         elif corner:
             #drive recent corner
             self.__drive_mode_corner(corner)
+            self.neopixel[0] = (0, 128, 0)
         elif current_sensor_value != SensorValue.WHITE:
             #normal drive
             self.__drive_mode_normal(current_sensor_value)
+            self.neopixel[0] = (0, 0, 0)
     
     def sens_update_callback(self, sav: SensorArrayValue):
         """Function that is called as callback when the sensor output has changed"""
@@ -124,13 +110,13 @@ class Driver:
         corner_detected = False
         for sav_id, sav, in enumerate(test_pice):
             if Line.get_bar_width(sav) > min_bar_width and abs(Line.get_bar_position(sav) - 2) >= 0.5:
-                # Test is this looks like a corner
+                # Test if this looks like a corner
                 corner_detected = True
             if corner_detected and sav == SensorValue.WHITE:
                 lost_line_after_corner = True
             if lost_line_after_corner and abs(Line.get_bar_position(sav) - 2) <= 2:
                 return False #lost line, but is is now near center again
-            if sav.time - test_pice[0].time >= 0.1 and abs(Line.get_bar_position(sav) - 2) <= 2:
+            if sav.time - test_pice[0].time >= 0.05 and abs(Line.get_bar_position(sav) - 2) <= 2:
                 return False #line is there and time since corner is high enough
         if corner_detected:
             return test_pice[0]
