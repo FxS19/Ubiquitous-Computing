@@ -3,8 +3,6 @@ Line following program
 Adafruit CircuitPython 6.2.0
 Board: Metro ESP32 S2 BETA
 Sensoren: KY-033 mit TCRT5000 (3x Digital)
-28.06.21 - wb
-v0.2
 """
 
 import time

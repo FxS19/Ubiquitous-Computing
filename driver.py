@@ -9,7 +9,7 @@ import time
 from vehicle import Vehicle
 from neopixel import NeoPixel
 from vehicle import Vehicle
-from sensor import SensorValue
+from sensor import Sensor, SensorValue
 from sensorarray import SensorArrayValue, SensorArray
 import drive_mode.race
 import drive_mode.drive
@@ -58,14 +58,14 @@ class Driver:
         if current_sensor_value == SensorValue.BLACK:
             #all black 90 degree to line
             self.__drive_mode_horizontal_line()
-        elif current_sensor_value == SensorValue.WHITE:
-            #Sensors complete white (end of line or line outside sensor array)
-            self.__drive_mode_blind()
-            self.neopixel[0] = (0, 0, 128)
         elif corner:
             #drive recent corner
             self.__drive_mode_corner(corner)
             self.neopixel[0] = (0, 128, 0)
+        elif current_sensor_value == SensorValue.WHITE:
+            #Sensors complete white (end of line or line outside sensor array)
+            self.__drive_mode_blind()
+            self.neopixel[0] = (0, 0, 128)
         elif current_sensor_value != SensorValue.WHITE:
             #normal drive
             self.__drive_mode_normal(current_sensor_value)
@@ -107,7 +107,7 @@ class Driver:
                 lost_line_after_corner = True
             if lost_line_after_corner and abs(Line.get_bar_position(sav) - 2) <= 2:
                 return False #lost line, but is is now near center again
-            if sav.time - test_pice[0].time >= 0.05 and abs(Line.get_bar_position(sav) - 2) <= 2:
+            if sav.time - test_pice[0].time >= 0.12 and abs(Line.get_bar_position(sav) - 2) <= 2:
                 return False #line is there and time since corner is high enough
         if corner_detected:
             return test_pice[0]
@@ -130,11 +130,11 @@ class Driver:
         max_speed = drive_modes[self.mode]["max_speed"]
         last_valid_line_position = False
         for sensor_array in reversed(self.sensor_array.history):
-            if Line.is_something(sensor_array) and Line.get_bar_position(sensor_array) != 2:
-                last_valid_line_position = Line.get_bar_position(sensor_array) - 2
+            if Line.is_something(sensor_array) and Line.get_bar_position(sensor_array) != SensorArray.CENTER:
+                last_valid_line_position = Line.get_bar_position(sensor_array)
                 break
-        if last_valid_line_position:
-            if last_valid_line_position > 0:
+        if last_valid_line_position >= 0:
+            if last_valid_line_position > SensorArray.CENTER:
                 self.vehicle.set_speed(
                     drive_modes[self.mode]["outside_line_speed"][0] * max_speed,
                     drive_modes[self.mode]["outside_line_speed"][1] * max_speed)
