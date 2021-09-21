@@ -95,20 +95,3 @@ class Motor:
     def __get_current_runtime(self):
         """Return the amount of that that passed since the last speed change"""
         return time.monotonic() - self.__time_speed_start
-
-
-class Vehicle:
-    """combine two motors to a Vehicle"""
-    def __init__(self, motor_l: Motor, motor_r: Motor) -> None:
-        self.motor_l = motor_l
-        self.motor_r = motor_r
-
-    def update(self):
-        """Update both motors"""
-        self.motor_l.update()
-        self.motor_r.update()
-
-    def set_speed(self, left_speed, right_speed):
-        """Set the target speed of the vehicle"""
-        self.motor_l.set_speed(left_speed)
-        self.motor_r.set_speed(right_speed)

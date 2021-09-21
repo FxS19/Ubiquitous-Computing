@@ -6,11 +6,9 @@ Board: Metro ESP32 S2 BETA
 
 from line import Line
 import time
-import board
-from motor import Motor
+from vehicle import Vehicle
 from neopixel import NeoPixel
-from sensor import Sensor
-from motor import Vehicle
+from vehicle import Vehicle
 from sensor import SensorValue
 from sensorarray import SensorArrayValue, SensorArray
 import drive_mode.race
@@ -28,17 +26,10 @@ class Driver:
 
     def __init__(self, mode: str, neopixel: NeoPixel) -> None:
         # Init Sensors
-        self.sensor_array = SensorArray([
-            Sensor(board.IO9),
-            Sensor(board.IO8),
-            Sensor(board.IO7),
-            Sensor(board.IO6),
-            Sensor(board.IO5)])
+        self.sensor_array = SensorArray()
 
         # Init motors
-        self.vehicle = Vehicle(
-            motor_l=Motor(io_pin_fwd=board.IO14, io_pin_bwd=board.IO13),
-            motor_r=Motor(io_pin_fwd=board.IO15, io_pin_bwd=board.IO16))
+        self.vehicle = Vehicle()
         self.__last_activated = time.monotonic()
         self.__alarm_sec = 0.05
         self.mode = mode

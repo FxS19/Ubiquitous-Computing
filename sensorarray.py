@@ -1,5 +1,6 @@
 """Combine sensors to an Array for easier use"""
 
+import board
 import time
 from sensor import SensorValue, Sensor
 from print import print_d
@@ -78,13 +79,18 @@ class SensorArray:
 
     [old, , , , , new]'''
 
-    def __init__(self, sensors) -> None:
+    def __init__(self) -> None:
         """All IR sensors
 
         Args:
             sensors (Array<Sensor>): All Sensors
         """
-        self._s = sensors
+        self._s = [
+            Sensor(board.IO9),
+            Sensor(board.IO8),
+            Sensor(board.IO7),
+            Sensor(board.IO6),
+            Sensor(board.IO5)]
         self.update(print_d)
     def read(self, sensor_id) -> SensorValue:
         """
