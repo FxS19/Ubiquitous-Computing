@@ -1,3 +1,4 @@
+"""Display functions"""
 
 import time
 import storage

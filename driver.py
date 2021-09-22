@@ -9,7 +9,7 @@ import time
 from vehicle import Vehicle
 from neopixel import NeoPixel
 from vehicle import Vehicle
-from sensor import Sensor, SensorValue
+from sensor import SensorValue
 from sensorarray import SensorArrayValue, SensorArray
 import drive_mode.race
 import drive_mode.drive
