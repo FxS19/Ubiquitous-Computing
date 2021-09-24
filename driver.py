@@ -9,7 +9,7 @@ import time
 from vehicle import Vehicle
 from neopixel import NeoPixel
 from vehicle import Vehicle
-from sensor import SensorValue
+from sensor import Sensor, SensorValue
 from sensorarray import SensorArrayValue, SensorArray
 import drive_mode.race
 import drive_mode.drive
@@ -107,7 +107,7 @@ class Driver:
                 lost_line_after_corner = True
             if lost_line_after_corner and abs(Line.get_bar_position(sav) - 2) <= 2:
                 return False #lost line, but is is now near center again
-            if sav.time - test_pice[0].time >= 0.12 and abs(Line.get_bar_position(sav) - 2) <= 2:
+            if sav.time - test_pice[0].time >= 0.2 and abs(Line.get_bar_position(sav) - 2) <= 2:
                 return False #line is there and time since corner is high enough
         if corner_detected:
             return test_pice[0]
