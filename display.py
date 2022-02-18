@@ -7,7 +7,6 @@ import terminalio
 from adafruit_display_text import label
 import adafruit_displayio_ssd1306
 import print
-from driver import Driver
 
 class Display:
     def __init__ (self, i2c, neopixel):
@@ -31,10 +30,16 @@ class Display:
         self.menue_item = 0
         self.menue_items = [
             {
-                "name": "Start",
+                "name": "Drive_old",
                 "value": "drive",
                 "callback": lambda _:None,
-                "execute": self.do_drive
+                "execute": self.do_old_drive
+            },
+            {
+                "name": "Drive",
+                "value": 1.5,
+                "callback": lambda _:None,
+                "execute": self.do_new_drive
             },
             {
                 "name": "debug",
@@ -57,13 +62,23 @@ class Display:
         self.text_area = label.Label(terminalio.FONT, text="", color=0xffffff, x=0, y=4)
         splash.append(self.text_area)
 
-    def do_drive(self, mode):
-        """start driving"""
-        driver = Driver(mode=mode, neopixel=self.__neopixel)
+    def do_old_drive(self, mode):
+        """start driving with code from 1st part"""
+        from driveByMatrix import DriveByMatrix
+        driver = DriveByMatrix(mode=mode, neopixel=self.__neopixel)
         for x in range(5, 0, -1):
             self.text_area.text = str(x)
             time.sleep(1)
         self.text_area.text = "GO!!!\n" + driver.mode
+        driver.start() #force regular updates (will run forever)
+
+    def do_new_drive(self, value):
+        from drive import Drive
+        driver = Drive(neopixel= self.__neopixel)
+        for x in range(5, 0, -1):
+            self.text_area.text = str(x)
+            #time.sleep(1)
+        self.text_area.text = "GO!!!\n"
         driver.start() #force regular updates
 
     def change_write_mode(self, value: bool):

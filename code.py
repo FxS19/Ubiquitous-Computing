@@ -58,15 +58,18 @@ while True:
         print_d("ENC:",current_position)
         update_screen = True
         if settings_change_value == True:
-            if type(display.menue_items[menue_item]["value"]) == bool:
-                display.menue_items[menue_item]["value"] = not display.menue_items[menue_item]["value"]
-            elif type(display.menue_items[menue_item]["value"]) == int:
+            current_menue_item_value = display.menue_items[menue_item]["value"]
+            if type(current_menue_item_value) == bool:
+                display.menue_items[menue_item]["value"] = current_menue_item_value
+            elif type(current_menue_item_value) == int:
                 display.menue_items[menue_item]["value"] += position_change
-            elif type(display.menue_items[menue_item]["value"]) == str:
-                if display.menue_items[menue_item]["value"] == "drive":
+            elif type(current_menue_item_value) == str:
+                if current_menue_item_value == "drive":
                     display.menue_items[menue_item]["value"] = "race"
-                elif display.menue_items[menue_item]["value"] == "race":
+                elif current_menue_item_value == "race":
                     display.menue_items[menue_item]["value"] = "drive"
+            elif type(current_menue_item_value) == float:
+                display.menue_items[menue_item]["value"] += position_change * 0.01
             else:
                 print_d("Error: settings type not found")
             # Call callback if available
@@ -83,5 +86,7 @@ while True:
     if update_screen:
         update_screen = False
         display.show_settings(change_value=settings_change_value)
+
+    display.do_new_drive(1.5)
 
     last_position = current_position

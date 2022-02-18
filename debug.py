@@ -7,7 +7,7 @@ to start
 """
 import board
 import neopixel
-from driver import Driver
+from driveByMatrix import Driver
 
 driver = Driver("drive", neopixel.NeoPixel(board.NEOPIXEL, 1))
 

@@ -8,9 +8,9 @@ from line import Line
 import time
 from vehicle import Vehicle
 from neopixel import NeoPixel
-from vehicle import Vehicle
 from sensor import Sensor, SensorValue
 from sensorarray import SensorArrayValue, SensorArray
+from recognizeShapes import RecognizeShapes
 import drive_mode.race
 import drive_mode.drive
 from print import print_d
@@ -21,7 +21,7 @@ drive_modes = {
     "drive": drive_mode.drive.value
 }
 
-class Driver:
+class DriveByMatrix:
     """Functions for driving"""
 
     def __init__(self, mode: str, neopixel: NeoPixel) -> None:
@@ -53,7 +53,7 @@ class Driver:
         """Perform an update of the decissions of driving functions."""
         self.__last_activated = time.monotonic()
         current_sensor_value = self.sensor_array.history[-1]
-        corner = self.get_corner()
+        corner = RecognizeShapes.get_corner(self.sensor_array)
 
         if current_sensor_value == SensorValue.BLACK:
             #all black 90 degree to line
@@ -75,43 +75,9 @@ class Driver:
         """Function that is called as callback when the sensor output has changed"""
         self.hard_update()
         corner = ""
-        if self.get_corner():
+        if RecognizeShapes.get_corner(self.sensor_array):
             corner = "corner"
         print_d("SENS:", sav, "{:.1f}".format(Line.get_bar_position(sav)), "\t", "{:.0f}".format(Line.get_bar_width(sav)), corner)
-
-    def get_corner(self) -> (bool(False) or SensorArrayValue):
-        """Search the history, if there is some kind of corner visible.
-        If the robot has not found the line again this function will
-        return the sensor values of that specific corner."""
-        now = time.monotonic()
-        lost_line_after_corner = False
-        min_bar_width = 2
-        max_look_back_sec = 2
-        border_id = 0
-        for sav_id, sav in enumerate(reversed(self.sensor_array.history)):
-            if now - sav.time > max_look_back_sec:
-                return False # No corner the last ... sec
-            if Line.get_bar_width(sav) > min_bar_width: # detected first corner
-                border_id = sav_id
-                break # no need for further investigation
-
-        test_pice = self.sensor_array.history[-(border_id+1):len(self.sensor_array.history)]
-        #first value is corner
-
-        corner_detected = False
-        for sav_id, sav, in enumerate(test_pice):
-            if Line.get_bar_width(sav) > min_bar_width and abs(Line.get_bar_position(sav) - 2) >= 0.5:
-                # Test if this looks like a corner
-                corner_detected = True
-            if corner_detected and sav == SensorValue.WHITE:
-                lost_line_after_corner = True
-            if lost_line_after_corner and abs(Line.get_bar_position(sav) - 2) <= 2:
-                return False #lost line, but is is now near center again
-            if sav.time - test_pice[0].time >= 0.2 and abs(Line.get_bar_position(sav) - 2) <= 2:
-                return False #line is there and time since corner is high enough
-        if corner_detected:
-            return test_pice[0]
-        return False
 
     def __drive_mode_normal(self, current_sensor_value):
         """Drive by the defined values"""

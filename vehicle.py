@@ -15,6 +15,6 @@ class Vehicle:
         self.motor_r.update()
 
     def set_speed(self, left_speed, right_speed):
-        """Set the target speed of the vehicle"""
+        """Set the target speed of the vehicle values from -100 to +100"""
         self.motor_l.set_speed(left_speed)
         self.motor_r.set_speed(right_speed)

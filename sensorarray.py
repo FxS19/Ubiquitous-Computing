@@ -100,18 +100,18 @@ class SensorArray:
         """
         return self._s[sensor_id].read()
 
-    def update(self, callback):
+    def update(self, callback = lambda _:None):
         """update all Sensors, if something changed execute the callback function"""
         ret = []
         for s in self._s:
             ret.append(s.read())
         sav = SensorArrayValue(ret)
         if sav != self.history[-1]:
-            callback(sav)
             print_d("SENS:", sav)
             if len(self.history) >= self.history_length:
                 self.history.pop(0)
             self.history.append(sav)
+            callback(sav)
 
     def read_all(self):
         """Return all Sensor Values as an Array
@@ -120,7 +120,7 @@ class SensorArray:
             Array<SensorValue>:
             Use SensorArray.[LEFT_LEFT, LEFT, CENTER, RIGHT, RIGHT_RIGHT] to index
         """
-        self.update(print_d)
+        self.update()
         return self.history
 
     def __str__(self) -> str:
