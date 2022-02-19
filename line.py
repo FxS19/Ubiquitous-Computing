@@ -5,11 +5,11 @@ from sensorarray import SensorArrayValue
 
 class Line:
     """Functions for detecting the line inside a SensorArrayValue"""
-    def is_something(array_value: SensorArrayValue):
+    def is_something(array_value: SensorArrayValue) -> bool:
         """test if there is some kind of line"""
         return array_value != SensorValue.WHITE
 
-    def get_bar(array_value: SensorArrayValue):
+    def get_bar(array_value: SensorArrayValue) -> tuple(int, int):
         """Get the position and the width of the line.
         If there are multiple possible answers the first thickest line is selected."""
         ctr = 0
@@ -53,12 +53,12 @@ class Line:
                 new_sensor_values.append(SensorValue.WHITE)
         return SensorArrayValue(new_sensor_values)
 
-    def get_bar_width(array_value: SensorArrayValue):
+    def get_bar_width(array_value: SensorArrayValue) -> int:
         """Return the number of sensors that are active in one row"""
         _, max_value = Line.get_bar(array_value)
         return max_value
 
-    def get_bar_position(array_value: SensorArrayValue):
+    def get_bar_position(array_value: SensorArrayValue) -> float:
         """Return between 0 and 4"""
         begin_max, max_length = Line.get_bar(array_value)
         if max_length % 2 == 1:
