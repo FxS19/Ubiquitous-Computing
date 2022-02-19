@@ -29,6 +29,30 @@ class Line:
             return (0, 0)
         return (begin_max, max_ctr)
 
+    def get_bar_count(array_value: SensorArrayValue) -> int:
+        """return the amount of visible individual lines"""
+        ctr = 0
+        last_value = SensorValue.WHITE
+        for sensor in array_value:
+            if sensor == SensorValue.BLACK and sensor != last_value:
+                ctr += 1
+            last_value = SensorValue.BLACK
+        return ctr
+
+    def get_line(array_value: SensorArrayValue, id: int) -> SensorArrayValue:
+        """Extract a line of an SensorArrayValue, return SensorArrayValue == SensorValue.WHITE if line doesn't exist"""
+        ctr = 0
+        last_value = SensorValue.WHITE
+        new_sensor_values = []
+        for sensor in array_value:
+            if sensor == SensorValue.BLACK and sensor != last_value:
+                ctr += 1
+            if ctr == id and sensor == SensorValue.BLACK:
+                new_sensor_values.append(SensorValue.BLACK)
+            else:
+                new_sensor_values.append(SensorValue.WHITE)
+        return SensorArrayValue(new_sensor_values)
+
     def get_bar_width(array_value: SensorArrayValue):
         """Return the number of sensors that are active in one row"""
         _, max_value = Line.get_bar(array_value)
