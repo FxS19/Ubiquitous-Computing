@@ -60,11 +60,10 @@ class Drive:
             if Line.get_bar_position(corner) < 2:
                 # corner is on the left
                 self.vehicle.set_speed(self.__speed_values["max_speed"]/6, self.__speed_values["max_speed"])
-                #self.vehicle.set_speed(self.__speed_values["max_speed"] * -1, 0)# self.__speed_values["max_speed"]/2)
             else:
                 # corner is on the right
                 self.vehicle.set_speed(self.__speed_values["max_speed"], self.__speed_values["max_speed"]/6)
-                #self.vehicle.set_speed(0, self.__speed_values["max_speed"] * -1)
+        
         # If there is no line visible
         elif current_sensor_value == SensorValue.WHITE:
             self.__last_drive_mode = "blind"
@@ -83,6 +82,8 @@ class Drive:
                 else:
                     # Line was valid on the left side or center
                     self.vehicle.set_speed(self.__speed_values["max_speed"] * -1, self.__speed_values["max_speed"])
+        
+        # normal driving mode
         else:
             self.__normal_driving_mode = True
             self.neopixel[0] = (0, 0, 0)
