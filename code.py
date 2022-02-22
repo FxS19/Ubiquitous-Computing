@@ -60,7 +60,7 @@ while True:
         if settings_change_value == True:
             current_menue_item_value = display.menue_items[menue_item]["value"]
             if type(current_menue_item_value) == bool:
-                display.menue_items[menue_item]["value"] = current_menue_item_value
+                display.menue_items[menue_item]["value"] = not current_menue_item_value
             elif type(current_menue_item_value) == int:
                 display.menue_items[menue_item]["value"] += position_change
             elif type(current_menue_item_value) == str:
@@ -86,7 +86,5 @@ while True:
     if update_screen:
         update_screen = False
         display.show_settings(change_value=settings_change_value)
-
-    display.do_new_drive(1.5)
 
     last_position = current_position

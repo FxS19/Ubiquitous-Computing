@@ -3,6 +3,7 @@ Replacement for using print.
 Serial communication needs time, which the processor doesn't have.
 This provides a simple switch for enabling or disabling DEBUG
 """
+from settingStorage import SettingStorage
 
 def print_d(*values: object) -> None:
     """same as print(), but can be disabled to speed things up"""
@@ -11,18 +12,8 @@ def print_d(*values: object) -> None:
 
 def set_debug_mode(value: bool) -> None:
     """set debug on or off"""
-    f = open('debug', 'w')
-    if value:
-        f.write('Enabled')
-    else:
-        f.write('')
-    f.close()
+    SettingStorage.set_value("debug", str(value))
 
 def get_debug_mode() -> bool:
     """get debug mode"""
-    f = open('debug')
-    v = f.read()
-    f.close()
-    if v:
-        return True
-    return False
+    return SettingStorage.get_value("debug") == "True"

@@ -1,5 +1,6 @@
 from print import print_d
-from sensorarray import SensorArrayValue, SensorArray
+from sensorarray import SensorArrayValue
+from sensorarray import SensorArray
 import time
 from line import Line
 from sensor import SensorValue
@@ -36,6 +37,83 @@ class RecognizeShapes:
             if corner_detected:
                 return test_pice[0]
             return False
+
+    def detect_corner_shape(sensor_array: SensorArray,  max_look_back_sec = 2):
+        """Get the type of corner if some\n
+        '' = nothing\n
+        'tl' = T-crossing on the left\n
+        'tr' = T-crossing on the right\n
+        '9l' = 90° left\n
+        '9r' = 90° right\n
+        'hl' = hard left\n
+        'hr' = hard right"""
+        now = time.monotonic()
+        min_bar_width = 2
+
+        results = [-1] # [0] newest
+        detected_patterns = [False, False, False, False, False, False]
+
+        def __append_type(i):
+            if results[-1] != i:
+                results.append(i)
+                detected_patterns[i] = True
+
+        averageLinePosition = RecognizeShapes.average_line_position(sensor_array, max_look_back_sec)
+
+        ## 0: nothing
+        ## 1: single line
+        ## 2: corner l
+        ## 3: corner r
+        ## 4: split l
+        ## 5: split r
+        
+        # analyse history and detect sensor patterns
+        for sav in reversed(sensor_array):
+            if now - sav.time > max_look_back_sec:
+                break # stop analyzing if time target is reached
+            if Line.get_bar_count(sav) > 1:
+                bar1 = Line.get_bar_position(Line.get_line(sav, 1)) - 2
+                bar2 = Line.get_bar_position(Line.get_line(sav, 2)) - 2
+                if abs(bar1) - abs(averageLinePosition) > abs(bar2) - abs(averageLinePosition): # left corner
+                    __append_type(4)
+                else:
+                    __append_type(5)
+            elif Line.is_something(sav):
+                if Line.get_bar_width(sav) > min_bar_width: # perfect 90° corner visible
+                    if Line.get_bar_position(sav) == averageLinePosition:
+                        if Line.get_bar_position(sav) >= 2: # no decision possible based on average line position
+                            __append_type(3)
+                        else:
+                            __append_type(2)
+                    elif Line.get_bar_position(sav) < averageLinePosition: # left corner
+                        __append_type(2)
+                    else:
+                        __append_type(3)
+                else:
+                    __append_type(1)
+            else:
+                __append_type(0)
+
+        results.pop(0) #get rid of start value
+
+        if detected_patterns[4] or detected_patterns[5]: # a line split was visible
+            if results[0] == 1 and now - sensor_array[-1].time > 0.3: # newest value is single line and older then x sec
+                if detected_patterns[4]:
+                    return 'tl'
+                return 'tr'
+            if results[0] == 0: # newest value is nothing
+                if detected_patterns[4]:
+                    return 'hl'
+                return 'hr'
+        
+        if detected_patterns[2] and results[0] == 0: # now is nothing but there was a corner left
+            return '9l'
+        
+        if detected_patterns[3] and results[0] == 0: # now is nothing but there was a corner right
+            return '9r'
+
+        return ''
+
     
     def trend(sensor_array: SensorArray, values: int) -> float:
         """Get the trend following the line for the last x values. 
@@ -56,7 +134,6 @@ class RecognizeShapes:
             if Line.is_something(current_sav):
                 trend_array.append([(Line.get_bar_position(current_sav) - 2),  cooldown_factor])
             else:
-                return 0
                 for k in range(i+1, sav_length):
                     current_sav = sensor_array.history[sav_length - (k+1)]
                     if Line.is_something(current_sav):
@@ -72,3 +149,19 @@ class RecognizeShapes:
             # links < rechts            ((t-1) - (t)) / cooldown(t)
             trend += ((trend_array[trend_id][0] - trend_array[trend_id - 1][0]) / trend_array[trend_id][1])
         return trend
+
+    def average_line_position(sensor_array: SensorArray,  max_look_back_sec = 2) -> float:
+        """return the average line position of the last x seconds. returns 0..4"""
+        now = time.monotonic()
+        ctr = 0
+        sum = 0
+        for sav in reversed(sensor_array):
+            if now - sav.time > max_look_back_sec:
+                break # stop analyzing if time target is reached
+            if Line.get_bar_position(sav) == -0.5:
+                continue
+            ctr += 1
+            sum += Line.get_bar_position(sav)
+        if ctr == 0:
+            return 2
+        return sum / ctr

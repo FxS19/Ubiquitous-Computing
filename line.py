@@ -33,14 +33,15 @@ class Line:
         """return the amount of visible individual lines"""
         ctr = 0
         last_value = SensorValue.WHITE
-        for sensor in array_value:
-            if sensor == SensorValue.BLACK and sensor != last_value:
+        for sensor_value in array_value:
+            if sensor_value == SensorValue.BLACK and sensor_value != last_value:
                 ctr += 1
-            last_value = SensorValue.BLACK
+            last_value = sensor_value
         return ctr
 
     def get_line(array_value: SensorArrayValue, id: int) -> SensorArrayValue:
-        """Extract a line of an SensorArrayValue, return SensorArrayValue == SensorValue.WHITE if line doesn't exist"""
+        """Extract a line of an SensorArrayValue, return SensorArrayValue == SensorValue.WHITE if line doesn't exist\n
+        id: 1..n"""
         ctr = 0
         last_value = SensorValue.WHITE
         new_sensor_values = []

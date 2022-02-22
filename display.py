@@ -7,6 +7,7 @@ import terminalio
 from adafruit_display_text import label
 import adafruit_displayio_ssd1306
 import print
+from settingStorage import SettingStorage
 
 class Display:
     def __init__ (self, i2c, neopixel):
@@ -37,9 +38,19 @@ class Display:
             },
             {
                 "name": "Drive",
-                "value": 1.5,
+                "value": "",
                 "callback": lambda _:None,
                 "execute": self.do_new_drive
+            },
+            {
+                "name": "linear_agg",
+                "value": float(SettingStorage.get_value("linear_aggressiveness")),
+                "callback": self.save_linear_aggressiveness
+            },
+            {
+                "name": "cubic_agg",
+                "value": float(SettingStorage.get_value("cubic_aggressiveness")),
+                "callback": self.save_cubic_aggressiveness
             },
             {
                 "name": "debug",
@@ -74,7 +85,11 @@ class Display:
 
     def do_new_drive(self, value):
         from drive import Drive
-        driver = Drive(neopixel= self.__neopixel)
+        driver = Drive(
+            neopixel= self.__neopixel, 
+            cubic_steer_aggressiveness= float(SettingStorage.get_value("cubic_aggressiveness")), 
+            linear_steer_aggressiveness= float(SettingStorage.get_value("linear_aggressiveness"))
+        )
         for x in range(5, 0, -1):
             self.text_area.text = str(x)
             #time.sleep(1)
@@ -97,6 +112,19 @@ class Display:
             self.text_area.text = "Not possible!\nEnable r/w first"
             time.sleep(1)
 
+    def save_linear_aggressiveness(self, value: float):
+        self.save_value('linear_aggressiveness', str(value))
+    
+    def save_cubic_aggressiveness(self, value: float):
+        self.save_value('cubic_aggressiveness', str(value))
+
+    def save_value(self, key: str, value: str):
+        try:
+            SettingStorage.set_value(key, value)
+        except OSError:
+            self.text_area.text = "Not possible!\nEnable r/w first"
+            time.sleep(1)
+
     def show_settings(self, change_value):
         """Display all visible setting entries"""
         items_to_display = 4
@@ -111,5 +139,8 @@ class Display:
                 my_text += "> "
             else:
                 my_text += "  "
-            my_text += v["name"] + ": " + str(v["value"]) + "\n"
+            if (type(v["value"]) == float):
+                my_text += v["name"] + ": " + "{:.2f}".format(v["value"]) + "\n"
+            else:
+                my_text += v["name"] + ": " + str(v["value"]) + "\n"
         self.text_area.text = my_text
