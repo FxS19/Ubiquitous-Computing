@@ -3,8 +3,9 @@
 
 
 wdir=$(pwd)
-rsync --exclude=.vscode --exclude=.git --delete -r --progress -v -c . /media/$USER/CIRCUITPY/
+rsync --exclude=.vscode --include "*.py" --include "drive_mode" --include "lib/***" --exclude "*" --delete -r --progress -v -c . /media/$USER/CIRCUITPY/
 cd /media/$USER/CIRCUITPY/
 sleep 4
 echo $(date +"%s") > uploaded
+sync -f /media/$USER/CIRCUITPY/
 cd $wdir
