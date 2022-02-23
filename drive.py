@@ -56,17 +56,18 @@ class Drive:
 
         if shape != '':
             # If a corner was detected and now there is no Line visible
+            self.__normal_driving_mode = False
             if shape[0] == '9': # about 90° corner detected
-                if shape[1] == 'l':
-                    self.vehicle.set_speed(self.__speed_values["base_speed"]/6, self.__speed_values["base_speed"])
-                else:
-                    self.vehicle.set_speed(self.__speed_values["base_speed"], self.__speed_values["base_speed"]/6)
-            
-            elif shape[0] == 'h': # robot is at an steep angle to the the corner
                 if shape[1] == 'l':
                     self.vehicle.set_speed(-self.__speed_values["base_speed"]/2, self.__speed_values["base_speed"])
                 else:
                     self.vehicle.set_speed(self.__speed_values["base_speed"], -self.__speed_values["base_speed"]/2)
+            
+            elif shape[0] == 'h': # robot is at an steep angle to the the corner
+                if shape[1] == 'l':
+                    self.vehicle.set_speed(-self.__speed_values["base_speed"] * 1.2, self.__speed_values["base_speed"])
+                else:
+                    self.vehicle.set_speed(self.__speed_values["base_speed"], -self.__speed_values["base_speed"] * 1.2)
             
             elif shape[0] == 't': # T crossing is visible
                 if shape[1] == 'l': # no left turns
@@ -101,4 +102,4 @@ class Drive:
             self.__normal_driving_mode = True
             self.neopixel[0] = (0, 0, 0)
 
-        print("SENS:", current_sensor_value, "{:.1f}".format(Line.get_bar_position(current_sensor_value)), "\t", "{:.0f}".format(Line.get_bar_width(current_sensor_value)), self.__last_drive_mode, RecognizeShapes.detect_corner_shape(self.__sensor_array.history))
+        print("SENS:", current_sensor_value, "{:.1f}".format(Line.get_bar_position(current_sensor_value)), "\t", "{:.0f}".format(Line.get_bar_width(current_sensor_value)), self.__last_drive_mode, RecognizeShapes.detect_corner_shape(self.__sensor_array))

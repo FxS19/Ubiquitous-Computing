@@ -68,7 +68,7 @@ class RecognizeShapes:
         ## 5: split r
         
         # analyse history and detect sensor patterns
-        for sav in reversed(sensor_array):
+        for sav in reversed(sensor_array.history):
             if now - sav.time > max_look_back_sec:
                 break # stop analyzing if time target is reached
             if Line.get_bar_count(sav) > 1:
@@ -80,15 +80,10 @@ class RecognizeShapes:
                     __append_type(5)
             elif Line.is_something(sav):
                 if Line.get_bar_width(sav) > min_bar_width: # perfect 90° corner visible
-                    if Line.get_bar_position(sav) == averageLinePosition:
-                        if Line.get_bar_position(sav) >= 2: # no decision possible based on average line position
-                            __append_type(3)
-                        else:
-                            __append_type(2)
-                    elif Line.get_bar_position(sav) < averageLinePosition: # left corner
-                        __append_type(2)
-                    else:
+                    if Line.get_bar_position(sav) >= 2: # no decision possible based on average line position
                         __append_type(3)
+                    else:
+                        __append_type(2)
                 else:
                     __append_type(1)
             else:
@@ -97,7 +92,7 @@ class RecognizeShapes:
         results.pop(0) #get rid of start value
 
         if detected_patterns[4] or detected_patterns[5]: # a line split was visible
-            if results[0] == 1 and now - sensor_array[-1].time > 0.3: # newest value is single line and older then x sec
+            if results[0] == 1 and now - sensor_array.history[-1].time > 0.3: # newest value is single line and older then x sec
                 if detected_patterns[4]:
                     return 'tl'
                 return 'tr'
@@ -155,7 +150,7 @@ class RecognizeShapes:
         now = time.monotonic()
         ctr = 0
         sum = 0
-        for sav in reversed(sensor_array):
+        for sav in reversed(sensor_array.history):
             if now - sav.time > max_look_back_sec:
                 break # stop analyzing if time target is reached
             if Line.get_bar_position(sav) == -0.5:
