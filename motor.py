@@ -8,7 +8,7 @@ v0.2
 
 import time
 import math
-import pulseio
+import pwmio
 import microcontroller
 
 ACCELERATION = 250 # % per second
@@ -22,11 +22,11 @@ class Motor:
     __current_speed = 0
 
     def __init__(self, io_pin_fwd: microcontroller.Pin, io_pin_bwd: microcontroller.Pin) -> None:
-        fwd_pin = pulseio.PWMOut(io_pin_fwd)
+        fwd_pin = pwmio.PWMOut(io_pin_fwd)
         fwd_pin.duty_cycle = 0  # between 0 and 65535
         self.__fwd_pin = fwd_pin
 
-        bwd_pin = pulseio.PWMOut(io_pin_bwd)
+        bwd_pin = pwmio.PWMOut(io_pin_bwd)
         bwd_pin.duty_cycle = 0  # between 0 and 65535
         self.__bwd_pin = bwd_pin
 
