@@ -31,12 +31,6 @@ class Display:
         self.menue_item = 0
         self.menue_items = [
             {
-                "name": "Drive_old",
-                "value": "drive",
-                "callback": lambda _:None,
-                "execute": self.do_old_drive
-            },
-            {
                 "name": "Drive",
                 "value": "",
                 "callback": lambda _:None,
@@ -45,17 +39,43 @@ class Display:
             {
                 "name": "linear_agg",
                 "value": float(SettingStorage.get_value("linear_aggressiveness")),
-                "callback": self.save_linear_aggressiveness
+                "callback": self.get_save_function("linear_aggressiveness")
             },
             {
                 "name": "cubic_agg",
                 "value": float(SettingStorage.get_value("cubic_aggressiveness")),
-                "callback": self.save_cubic_aggressiveness
+                "callback": self.get_save_function("cubic_aggressiveness")
+            },
+            {
+                "name": "corner_9_s",
+                "value": float(SettingStorage.get_value("corner_9_short_modifier")),
+                "callback": self.get_save_function("corner_9_short_modifier")
+            },
+            {
+                "name": "corner_9_l",
+                "value": float(SettingStorage.get_value("corner_9_long_modifier")),
+                "callback": self.get_save_function("corner_9_long_modifier")
+            },
+            {
+                "name": "corner_h_s",
+                "value": float(SettingStorage.get_value("corner_h_short_modifier")),
+                "callback": self.get_save_function("corner_h_short_modifier")
+            },
+            {
+                "name": "corner_h_l",
+                "value": float(SettingStorage.get_value("corner_h_long_modifier")),
+                "callback": self.get_save_function("corner_h_long_modifier")
+            },
+            {
+                "name": "Drive_old",
+                "value": "drive",
+                "callback": lambda _:None,
+                "execute": self.do_old_drive
             },
             {
                 "name": "debug",
                 "value": print.get_debug_mode(),
-                "callback": self.update_debug_mode
+                "callback": self.get_save_function("debug")
             },
             {
                 "name": "test",
@@ -84,12 +104,9 @@ class Display:
         driver.start() #force regular updates (will run forever)
 
     def do_new_drive(self, value):
+        """Start new driving mode"""
         from drive import Drive
-        driver = Drive(
-            neopixel= self.__neopixel, 
-            cubic_steer_aggressiveness= float(SettingStorage.get_value("cubic_aggressiveness")), 
-            linear_steer_aggressiveness= float(SettingStorage.get_value("linear_aggressiveness"))
-        )
+        driver = Drive(neopixel= self.__neopixel)
         for x in range(5, 0, -1):
             self.text_area.text = str(x)
             #time.sleep(1)
@@ -104,21 +121,14 @@ class Display:
             self.text_area.text = "Not possible!\nComputer is connected"
             time.sleep(1)
 
-    def update_debug_mode(self, value: bool):
-        """change if debug messages will be displayed or not"""
-        try:
-            print.set_debug_mode(value)
-        except OSError:
-            self.text_area.text = "Not possible!\nEnable r/w first"
-            time.sleep(1)
-
-    def save_linear_aggressiveness(self, value: float):
-        self.save_value('linear_aggressiveness', str(value))
-    
-    def save_cubic_aggressiveness(self, value: float):
-        self.save_value('cubic_aggressiveness', str(value))
+    def get_save_function(self, key: str) -> function :
+        """Get a function for saving a not jet known value to a defined storage space"""
+        def __tmp(value):
+            self.save_value(key, str(value))
+        return __tmp
 
     def save_value(self, key: str, value: str):
+        """Save value to a known storage space"""
         try:
             SettingStorage.set_value(key, value)
         except OSError:
