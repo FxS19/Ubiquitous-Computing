@@ -28,9 +28,9 @@ class Drive:
         self.__cubic_steer_aggressiveness = float(SettingStorage.get_value("cubic_aggressiveness"))
         self.__linear_steer_aggressiveness = float(SettingStorage.get_value("linear_aggressiveness"))
         self.__corner_9_short_modifier = float(SettingStorage.get_value("corner_9_short_modifier"))
-        self.__corner_9_long_modifier = float(SettingStorage.get_value("corner_9_short_modifier"))
+        self.__corner_9_long_modifier = float(SettingStorage.get_value("corner_9_long_modifier"))
         self.__corner_h_short_modifier = float(SettingStorage.get_value("corner_h_short_modifier"))
-        self.__corner_h_long_modifier = float(SettingStorage.get_value("corner_h_short_modifier"))
+        self.__corner_h_long_modifier = float(SettingStorage.get_value("corner_h_long_modifier"))
 
     def start(self):
         """Start driving"""
@@ -42,7 +42,7 @@ class Drive:
                 # normal driving mode
                 trend = RecognizeShapes.trend(self.__sensor_array, 3)
                 current_sensor_value = self.__sensor_array.history[-1]
-                sig_modifier = 1 + 1 / (1 + e**(((time.monotonic() - current_sensor_value.time) - 8)/16)) # sigmoid function skaled, that the maximum amount is reached after one second
+                sig_modifier = 1 + (1 - 1 / (1 + e**(((time.monotonic() - current_sensor_value.time) - 8)/16))) # sigmoid function skaled, that the maximum amount is reached after one second
                 line_position_modifier = (Line.get_bar_position(current_sensor_value)-2) * 8 * sig_modifier
 
                 #print_d("Trend:", trend)
@@ -70,6 +70,7 @@ class Drive:
             # If a corner was detected and now there is no Line visible
             self.__normal_driving_mode = False
             if shape[0] == '9': # about 90° corner detected
+                self.neopixel[0] = (128, 0, 0)
                 if shape[1] == 'l':
                     self.vehicle.set_speed(
                         self.__speed_values["base_speed"] * self.__corner_9_short_modifier,
@@ -80,6 +81,7 @@ class Drive:
                         self.__speed_values["base_speed"] * self.__corner_9_short_modifier)
             
             elif shape[0] == 'h': # robot is at an steep angle to the the corner
+                self.neopixel[0] = (255, 0, 0)
                 if shape[1] == 'l':
                     self.vehicle.set_speed(
                         self.__speed_values["base_speed"] * self.__corner_h_short_modifier,
@@ -91,11 +93,13 @@ class Drive:
             
             elif shape[0] == 't': # T crossing is visible
                 if shape[1] == 'l': # do not turn left
+                    self.neopixel[0] = (0, 0, 128)
                     if RecognizeShapes.average_line_position(self.__sensor_array, 1) > Line.get_bar_position(current_sensor_value):
                         self.vehicle.set_speed(self.__speed_values["base_speed"]/3, self.__speed_values["base_speed"]/2)
                     else:
                         self.vehicle.set_speed(self.__speed_values["base_speed"]/2, self.__speed_values["base_speed"]/3)
                 else: 
+                    self.neopixel[0] = (0, 0, 255)
                     self.vehicle.set_speed(self.__speed_values["base_speed"], -self.__speed_values["base_speed"]/2)
         
         # If there is no line visible

@@ -102,10 +102,9 @@ class RecognizeShapes:
                 return 'hr'
 
         if results[0] == 0: # Now there is no line visible
-            
-            if detected_patterns[3]: # there was a corner on the left
+            if detected_patterns[2]: # there was a corner on the left
                 return '9l'
-            if detected_patterns[4]: # there was a corner on the right
+            if detected_patterns[3]: # there was a corner on the right
                 return '9r'
 
         return ''
