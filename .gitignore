@@ -5,3 +5,4 @@ System Volume Information/IndexerVolumeGuid
 .Trashes
 .fseventsd/no_log
 links.url.txt
+__pycache__
