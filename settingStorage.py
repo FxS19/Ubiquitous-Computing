@@ -1,7 +1,10 @@
+"""Storage framework for saving simple values as key-storage type"""
 
 import os
 
+
 class SettingStorage:
+
     def set_value(key: str, value: str) -> None:
         """set value"""
         if value:

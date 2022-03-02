@@ -8,6 +8,7 @@ Group 1
 from digitalio import DigitalInOut, Direction, Pull
 import microcontroller
 
+
 class SensorValue:
     """Value type of IR sensor"""
     WHITE = False
@@ -33,6 +34,7 @@ class SensorValue:
 class Sensor:
     """One IR Sensor"""
     _sensor = 0
+
     def __init__(self, sensor: microcontroller.Pin) -> None:
         """Create one Sensor, based on the IO Pin
 

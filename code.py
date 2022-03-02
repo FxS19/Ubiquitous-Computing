@@ -55,9 +55,9 @@ while True:
     position_change = current_position - last_position
 
     if position_change != 0:
-        print_d("ENC:",current_position)
+        print_d("ENC:", current_position)
         update_screen = True
-        if settings_change_value == True:
+        if settings_change_value is True:
             current_menue_item_value = display.menue_items[menue_item]["value"]
             if type(current_menue_item_value) == bool:
                 display.menue_items[menue_item]["value"] = not current_menue_item_value
@@ -81,7 +81,7 @@ while True:
             while display.menue_item < 0:
                 display.menue_item = len(display.menue_items) + display.menue_item
             while display.menue_item > len(display.menue_items) - 1:
-                display.menue_item =  display.menue_item - len(display.menue_items)
+                display.menue_item = display.menue_item - len(display.menue_items)
 
     if update_screen:
         update_screen = False

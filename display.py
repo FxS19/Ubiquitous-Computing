@@ -9,8 +9,11 @@ import adafruit_displayio_ssd1306
 import print
 from settingStorage import SettingStorage
 
+
 class Display:
-    def __init__ (self, i2c, neopixel):
+
+    def __init__(self, i2c, neopixel):
+
         # Setup display´
         displayio.release_displays()
         self.i2c = i2c
@@ -33,7 +36,7 @@ class Display:
             {
                 "name": "Drive",
                 "value": "",
-                "callback": lambda _:None,
+                "callback": lambda _: None,
                 "execute": self.do_new_drive
             },
             {
@@ -69,7 +72,7 @@ class Display:
             {
                 "name": "Drive_old",
                 "value": "drive",
-                "callback": lambda _:None,
+                "callback": lambda _: None,
                 "execute": self.do_old_drive
             },
             {
@@ -101,17 +104,17 @@ class Display:
             self.text_area.text = str(x)
             time.sleep(1)
         self.text_area.text = "GO!!!\n" + driver.mode
-        driver.start() #force regular updates (will run forever)
+        driver.start()  # force regular updates (will run forever)
 
     def do_new_drive(self, value):
         """Start new driving mode"""
         from drive import Drive
-        driver = Drive(neopixel= self.__neopixel)
+        driver = Drive(neopixel=self.__neopixel)
         for x in range(5, 0, -1):
             self.text_area.text = str(x)
-            #time.sleep(1)
+            # time.sleep(1)
         self.text_area.text = "GO!!!\n"
-        driver.start() #force regular updates
+        driver.start()  # force regular updates
 
     def change_write_mode(self, value: bool):
         """Change the write permission of the internal filesystem"""
@@ -121,7 +124,7 @@ class Display:
             self.text_area.text = "Not possible!\nComputer is connected"
             time.sleep(1)
 
-    def get_save_function(self, key: str) -> function :
+    def get_save_function(self, key: str) -> function:
         """Get a function for saving a not jet known value to a defined storage space"""
         def __tmp(value):
             self.save_value(key, str(value))
@@ -144,7 +147,7 @@ class Display:
         my_text = ""
         for i, v in enumerate(visible_items):
             if i == 0:
-                if change_value == True:
+                if change_value is True:
                     my_text += ">"
                 my_text += "> "
             else:

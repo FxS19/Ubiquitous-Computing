@@ -5,6 +5,7 @@ import time
 from sensor import SensorValue, Sensor
 from print import print_d
 
+
 class SensorArrayValue:
     """Value type of Sensor Array"""
     _values = []
@@ -16,7 +17,8 @@ class SensorArrayValue:
         for sens in self._values:
             if sens == color:
                 c += 1
-        if c == len(self._values): return True
+        if c == len(self._values):
+            return True
         return False
 
     def __init__(self, sensorvalues: SensorValue) -> None:
@@ -27,7 +29,6 @@ class SensorArrayValue:
         ret = []
         for value in self._values:
             ret.append(str(value))
-        #ret.append("{:.2f}".format(self.time))
         return " ".join(ret)
 
     def __eq__(self, other: object) -> bool:
@@ -64,13 +65,16 @@ class SensorArray:
     RIGHT = 1
     RIGHT_RIGHT = 0
     history_length = 30
-    history = [SensorArrayValue([
-                SensorValue(SensorValue.WHITE),
-                SensorValue(SensorValue.WHITE),
-                SensorValue(SensorValue.WHITE),
-                SensorValue(SensorValue.WHITE),
-                SensorValue(SensorValue.WHITE)
-    ])]
+    history = [
+        SensorArrayValue([
+            SensorValue(SensorValue.WHITE),
+            SensorValue(SensorValue.WHITE),
+            SensorValue(SensorValue.WHITE),
+            SensorValue(SensorValue.WHITE),
+            SensorValue(SensorValue.WHITE)
+        ])
+    ]
+
     ''' sensor array history:
 
     [0] = oldest
@@ -92,6 +96,7 @@ class SensorArray:
             Sensor(board.IO6),
             Sensor(board.IO5)]
         self.update(print_d)
+
     def read(self, sensor_id) -> SensorValue:
         """
         Read a sensor based on it's name
@@ -100,7 +105,7 @@ class SensorArray:
         """
         return self._s[sensor_id].read()
 
-    def update(self, callback = lambda _:None):
+    def update(self, callback=lambda _: None):
         """update all Sensors, if something changed execute the callback function"""
         ret = []
         for s in self._s:

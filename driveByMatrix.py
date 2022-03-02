@@ -16,10 +16,12 @@ import drive_mode.drive
 from print import print_d
 from line import Line
 
+
 drive_modes = {
     "race": drive_mode.race.value,
     "drive": drive_mode.drive.value
 }
+
 
 class DriveByMatrix:
     """Functions for driving"""
@@ -56,21 +58,21 @@ class DriveByMatrix:
         corner = RecognizeShapes.get_corner(self.sensor_array)
 
         if current_sensor_value == SensorValue.BLACK:
-            #all black 90 degree to line
+            # all black 90 degree to line
             self.__drive_mode_horizontal_line()
         elif corner:
-            #drive recent corner
+            # drive recent corner
             self.__drive_mode_corner(corner)
             self.neopixel[0] = (0, 128, 0)
         elif current_sensor_value == SensorValue.WHITE:
-            #Sensors complete white (end of line or line outside sensor array)
+            # Sensors complete white (end of line or line outside sensor array)
             self.__drive_mode_blind()
             self.neopixel[0] = (0, 0, 128)
         elif current_sensor_value != SensorValue.WHITE:
-            #normal drive
+            # normal drive
             self.__drive_mode_normal(current_sensor_value)
             self.neopixel[0] = (0, 0, 0)
-    
+
     def sens_update_callback(self, sav: SensorArrayValue):
         """Function that is called as callback when the sensor output has changed"""
         self.hard_update()
@@ -119,10 +121,10 @@ class DriveByMatrix:
         else:
             if speed_l > speed_r:
                 pass
-                #self.vehicle.set_speed(-1 * MAX_SPEED, 1 * MAX_SPEED)
+                # self.vehicle.set_speed(-1 * MAX_SPEED, 1 * MAX_SPEED)
             else:
                 pass
-                #self.vehicle.set_speed(1 * MAX_SPEED, -1 * MAX_SPEED)
+                # self.vehicle.set_speed(1 * MAX_SPEED, -1 * MAX_SPEED)
 
     def __drive_mode_corner(self, corner):
         """Drive around a corner -> two effective modes are available,

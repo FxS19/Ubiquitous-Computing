@@ -11,8 +11,9 @@ import math
 import pwmio
 import microcontroller
 
-ACCELERATION = 250 # % per second
-SPIKE_HEIGHT = 1.02#1.2
+ACCELERATION = 250  # % per second
+SPIKE_HEIGHT = 1.02  # 1.2
+
 
 class Motor:
     """Motor functions"""
@@ -53,12 +54,12 @@ class Motor:
                 value = -65535
             self.__current_speed = value
             self.__fwd_pin.duty_cycle = 0
-            self.__bwd_pin.duty_cycle = -value #between 0 and 65535 -> approximation
+            self.__bwd_pin.duty_cycle = -value  # between 0 and 65535 -> approximation
         elif value > 0:
             if value > 65535:
                 value = 65535
             self.__current_speed = value
-            self.__fwd_pin.duty_cycle = value #between 0 and 65535 -> approximation
+            self.__fwd_pin.duty_cycle = value  # between 0 and 65535 -> approximation
             self.__bwd_pin.duty_cycle = 0
         else:
             self.__current_speed = 0
@@ -73,13 +74,13 @@ class Motor:
     def update(self):
         """Update the set speed and the target speed of the motor."""
         if (self.__target - self.get_speed()) == 0:
-            return # do nothing if targetspeed is reached
+            return  # do nothing if targetspeed is reached
         needed_time = abs(self.__target - self.__last) / ACCELERATION
         percentage = self.__get_current_runtime() / needed_time
         if percentage > 1:
             percentage = 1
         delta = self.__target - self.__last * 650
-        self.set_speed_raw(math.floor(self.__target * 650 + delta * SPIKE_HEIGHT * (1-percentage)))
+        self.set_speed_raw(math.floor(self.__target * 650 + delta * SPIKE_HEIGHT * (1 - percentage)))
 
     def __estimate_speed(self, begin_speed, target_speed):
         """

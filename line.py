@@ -3,6 +3,7 @@
 from sensor import SensorValue
 from sensorarray import SensorArrayValue
 
+
 class Line:
     """Functions for detecting the line inside a SensorArrayValue"""
     def is_something(array_value: SensorArrayValue) -> bool:

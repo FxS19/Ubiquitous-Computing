@@ -12,7 +12,8 @@ from sensorarray import SensorArray
 from line import Line
 from settingStorage import SettingStorage
 
-e = 2.7182818 # euler's number
+e = 2.7182818  # euler's number
+
 
 class Drive:
     __speed_values = {
@@ -38,28 +39,26 @@ class Drive:
             self.__sensor_array.update(self.__sens_update_callback)
             self.vehicle.update()
 
-            if self.__normal_driving_mode == True:
+            if self.__normal_driving_mode is True:
                 # normal driving mode
                 trend = RecognizeShapes.trend(self.__sensor_array, 3)
                 current_sensor_value = self.__sensor_array.history[-1]
-                sig_modifier = 1 + (1 - 1 / (1 + e**(((time.monotonic() - current_sensor_value.time) - 8)/16))) # sigmoid function skaled, that the maximum amount is reached after one second
-                line_position_modifier = (Line.get_bar_position(current_sensor_value)-2) * 8 * sig_modifier
+                sig_modifier = 1 + (1 - 1 / (1 + e**(((time.monotonic() - current_sensor_value.time) - 8) / 16)))  # sigmoid function skaled, that the maximum amount is reached after one second
+                line_position_modifier = (Line.get_bar_position(current_sensor_value) - 2) * 8 * sig_modifier
 
-                #print_d("Trend:", trend)
                 # limit trend values
                 if trend > 4:
                     trend = 4
-                    self.neopixel[0] = (128, 0, 90) # LED is pink, if trend is limited
+                    self.neopixel[0] = (128, 0, 90)  # LED is pink, if trend is limited
                 if trend < -4:
                     trend = -4
-                    self.neopixel[0] = (128, 0, 90) # LED is pink, if trend is limited
+                    self.neopixel[0] = (128, 0, 90)  # LED is pink, if trend is limited
 
                 self.vehicle.motor_l.set_speed(self.__calc_normal_motor_speed(-trend) + line_position_modifier)
                 self.vehicle.motor_r.set_speed(self.__calc_normal_motor_speed(trend) - line_position_modifier)
 
-            
     def __calc_normal_motor_speed(self, trend: float) -> float:
-        return (trend * self.__cubic_steer_aggressiveness)**3 + (trend * self.__linear_steer_aggressiveness) + self.__speed_values["base_speed"] # math tested with geogebra
+        return (trend * self.__cubic_steer_aggressiveness)**3 + (trend * self.__linear_steer_aggressiveness) + self.__speed_values["base_speed"]  # math tested with geogebra
 
     def __sens_update_callback(self, _):
         """Function that is called as callback when the sensor output has changed"""
@@ -69,7 +68,7 @@ class Drive:
         if shape != '':
             # If a corner was detected and now there is no Line visible
             self.__normal_driving_mode = False
-            if shape[0] == '9': # about 90° corner detected
+            if shape[0] == '9':  # about 90° corner detected
                 self.neopixel[0] = (128, 0, 0)
                 if shape[1] == 'l':
                     self.vehicle.set_speed(
@@ -79,8 +78,8 @@ class Drive:
                     self.vehicle.set_speed(
                         self.__speed_values["base_speed"] * self.__corner_9_long_modifier,
                         self.__speed_values["base_speed"] * self.__corner_9_short_modifier)
-            
-            elif shape[0] == 'h': # robot is at an steep angle to the the corner
+
+            elif shape[0] == 'h':  # robot is at an steep angle to the the corner
                 self.neopixel[0] = (255, 0, 0)
                 if shape[1] == 'l':
                     self.vehicle.set_speed(
@@ -88,20 +87,20 @@ class Drive:
                         self.__speed_values["base_speed"] * self.__corner_h_long_modifier)
                 else:
                     self.vehicle.set_speed(
-                        self.__speed_values["base_speed"] * self.__corner_h_long_modifier, 
+                        self.__speed_values["base_speed"] * self.__corner_h_long_modifier,
                         self.__speed_values["base_speed"] * self.__corner_h_short_modifier)
-            
-            elif shape[0] == 't': # T crossing is visible
-                if shape[1] == 'l': # do not turn left
+
+            elif shape[0] == 't':  # T crossing is visible
+                if shape[1] == 'l':  # do not turn left
                     self.neopixel[0] = (0, 0, 128)
                     if RecognizeShapes.average_line_position(self.__sensor_array, 1) > Line.get_bar_position(current_sensor_value):
-                        self.vehicle.set_speed(self.__speed_values["base_speed"]/3, self.__speed_values["base_speed"]/2)
+                        self.vehicle.set_speed(self.__speed_values["base_speed"] / 3, self.__speed_values["base_speed"] / 2)
                     else:
-                        self.vehicle.set_speed(self.__speed_values["base_speed"]/2, self.__speed_values["base_speed"]/3)
-                else: 
+                        self.vehicle.set_speed(self.__speed_values["base_speed"] / 2, self.__speed_values["base_speed"] / 3)
+                else:
                     self.neopixel[0] = (0, 0, 255)
-                    self.vehicle.set_speed(self.__speed_values["base_speed"], -self.__speed_values["base_speed"]/2)
-        
+                    self.vehicle.set_speed(self.__speed_values["base_speed"], -self.__speed_values["base_speed"] / 2)
+
         # If there is no line visible
         elif current_sensor_value == SensorValue.WHITE:
             self.neopixel[0] = (128, 128, 128)
@@ -119,7 +118,7 @@ class Drive:
                 else:
                     # Line was valid on the left side or center
                     self.vehicle.set_speed(self.__speed_values["base_speed"] * -1, self.__speed_values["base_speed"])
-        
+
         # normal driving mode
         else:
             self.__normal_driving_mode = True
