@@ -51,13 +51,15 @@ class RecognizeShapes:
         now = time.monotonic()
         min_bar_width = 2
 
-        results = [-1]  # [0] newest
+        results = [(-1,0)]  # [0] newest
         detected_patterns = [False, False, False, False, False, False]
 
-        def __append_type(i):
-            if results[-1] != i:
-                results.append(i)
+        def __append_type(i, tiemestamp):
+            if results[-1][0] != i:
+                results.append((i, tiemestamp))
                 detected_patterns[i] = True
+            elif results[-1][1] > tiemestamp:
+                results[-1] = (i, tiemestamp)
 
         averageLinePosition = RecognizeShapes.average_line_position(sensor_array, max_look_back_sec)
 
@@ -76,37 +78,52 @@ class RecognizeShapes:
                 bar1 = Line.get_bar_position(Line.get_line(sav, 1)) - 2
                 bar2 = Line.get_bar_position(Line.get_line(sav, 2)) - 2
                 if abs(bar1) - abs(averageLinePosition) > abs(bar2) - abs(averageLinePosition):  # left corner
-                    __append_type(4)
+                    __append_type(4, sav.time)
                 else:
-                    __append_type(5)
+                    __append_type(5, sav.time)
             elif Line.is_something(sav):
                 if Line.get_bar_width(sav) > min_bar_width:  # perfect 90° corner visible
                     if Line.get_bar_position(sav) >= 2:  # no decision possible based on average line position
-                        __append_type(3)
+                        __append_type(3, sav.time)
                     else:
-                        __append_type(2)
+                        __append_type(2, sav.time)
                 else:
-                    __append_type(1)
+                    __append_type(1, sav.time)
             else:
-                __append_type(0)
+                __append_type(0, sav.time)
 
         results.pop(0)  # get rid of start value
 
-        if detected_patterns[4] or detected_patterns[5]:  # a line split was visible
-            if results[0] == 1 and now - sensor_array.history[-1].time > 0.3:  # newest value is single line and older then x sec
-                if detected_patterns[4]:
-                    return 'tl'
-                return 'tr'
-            if results[0] == 0:  # newest value is nothing
+        if len(results) == 0: # stop if no value visible
+            return ''
+
+        if results[0][0] == 0:  # newest value is nothing
+            if detected_patterns[4] or detected_patterns[5]:  # a line split was visible
                 if detected_patterns[4]:
                     return 'hl'
                 return 'hr'
-
-        if results[0] == 0:  # Now there is no line visible
-            if detected_patterns[2]:  # there was a corner on the left
-                return '9l'
+            if detected_patterns[3] and detected_patterns[2]: # there was a corner on the left and right
+                return 'tr' # t crossing center, but tr also works
             if detected_patterns[3]:  # there was a corner on the right
                 return '9r'
+            if detected_patterns[2]:  # there was a corner on the left
+                return '9l'
+
+        if detected_patterns[4] and detected_patterns[5]: # a line split on the left and right was visible
+            return 'tr' # 4-way crossing from an weird angle
+        if  detected_patterns[2] and detected_patterns[3] and results[0][0] == 1 and now - results[0][1] > 0.3: # there was a corner on the left and right, now there is a single line since more the x seconds
+            return 'tr' # 4-way crossing
+
+        if detected_patterns[4] or detected_patterns[5]:  # a line split was visible
+            if results[0][0] == 1 and now - results[0][1] > 0.3:  # newest value is single line and older then x sec
+                if detected_patterns[4]:
+                    return 'tl'
+                return 'tr'
+        if detected_patterns[3] or detected_patterns[2]: # there was a corner on the left or right
+            if results[0][0] == 1 and now - results[0][1] > 0.3:  # newest value is single line and older then x sec
+                if detected_patterns[2]:
+                    return 'tl'
+                return 'tr'
 
         return ''
 
@@ -153,7 +170,7 @@ class RecognizeShapes:
         for sav in reversed(sensor_array.history):
             if now - sav.time > max_look_back_sec:
                 break  # stop analyzing if time target is reached
-            if Line.get_bar_position(sav) == -0.5 or Line.get_bar_count(sav) > 1 or Line.get_bar_width(sav) > 2:
+            if Line.get_bar_position(sav) == -0.5 or Line.get_bar_count(sav) > 1 or Line.get_bar_width(sav) > 2: # do not use undefined patterns
                 continue
             ctr += 1
             sum += Line.get_bar_position(sav)

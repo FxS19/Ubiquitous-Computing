@@ -36,7 +36,8 @@ class Drive:
     def start(self):
         """Start driving"""
         while self.active:
-            self.__sensor_array.update(self.__sens_update_callback)
+            self.__sensor_array.update()
+            self.special_driving_modes(None)
             self.vehicle.update()
 
             if self.__normal_driving_mode is True:
@@ -60,8 +61,8 @@ class Drive:
     def __calc_normal_motor_speed(self, trend: float) -> float:
         return (trend * self.__cubic_steer_aggressiveness)**3 + (trend * self.__linear_steer_aggressiveness) + self.__speed_values["base_speed"]  # math tested with geogebra
 
-    def __sens_update_callback(self, _):
-        """Function that is called as callback when the sensor output has changed"""
+    def special_driving_modes(self, _):
+        """Detect end perform special driving tasks"""
         shape = RecognizeShapes.detect_corner_shape(self.__sensor_array, max_look_back_sec=0.8)
         current_sensor_value = self.__sensor_array.history[-1]
 
@@ -70,6 +71,10 @@ class Drive:
             self.__normal_driving_mode = False
             if shape[0] == '9':  # about 90° corner detected
                 self.neopixel[0] = (30, 0, 0)
+                begin_time = time.monotonic()
+                while (time.monotonic() > begin_time + 0.4): # drive some time over the edge but keep values up to date
+                    self.__sensor_array.update() 
+                    self.vehicle.update()
                 if shape[1] == 'l':
                     self.vehicle.set_speed(
                         self.__speed_values["base_speed"] * self.__corner_9_short_modifier,
@@ -78,6 +83,9 @@ class Drive:
                     self.vehicle.set_speed(
                         self.__speed_values["base_speed"] * self.__corner_9_long_modifier,
                         self.__speed_values["base_speed"] * self.__corner_9_short_modifier)
+                while (not Line.is_something(self.__sensor_array.history[-1])): # continue rotating until Line is visible
+                    self.__sensor_array.update() 
+                    self.vehicle.update()
 
             elif shape[0] == 'h':  # robot is at an steep angle to the the corner
                 self.neopixel[0] = (255, 0, 0)
@@ -93,13 +101,13 @@ class Drive:
             elif shape[0] == 't':  # T crossing is visible
                 if shape[1] == 'l':  # do not turn left
                     self.neopixel[0] = (0, 0, 128)
-                    if RecognizeShapes.average_line_position(self.__sensor_array, 1) > Line.get_bar_position(current_sensor_value):
-                        self.vehicle.set_speed(self.__speed_values["base_speed"] / 3, self.__speed_values["base_speed"] / 2)
-                    else:
-                        self.vehicle.set_speed(self.__speed_values["base_speed"] / 2, self.__speed_values["base_speed"] / 3)
+                    self.vehicle.set_speed(0, 0)
                 else:
                     self.neopixel[0] = (0, 0, 255)
-                    self.vehicle.set_speed(self.__speed_values["base_speed"], -self.__speed_values["base_speed"] / 2)
+                    self.vehicle.set_speed(self.__speed_values["base_speed"] * self.__corner_9_long_modifier, -self.__speed_values["base_speed"] * self.__corner_9_short_modifier)
+                    while (self.__sensor_array.history[-1][SensorArray.RIGHT_RIGHT] != SensorValue.BLACK): # rotate until line is visible on the right
+                        self.__sensor_array.update() 
+                        self.vehicle.update()
 
         # If there is no line visible
         elif current_sensor_value == SensorValue.WHITE:
