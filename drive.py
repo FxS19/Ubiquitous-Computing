@@ -35,9 +35,12 @@ class Drive:
 
     def start(self):
         """Start driving"""
+        ctr = 0
         while self.active:
-            self.__sensor_array.update()
-            self.special_driving_modes(None)
+            self.__sensor_array.update(self.special_driving_modes)
+            if ctr % 10 == 0:
+                self.special_driving_modes(None)
+            ctr += 1
             self.vehicle.update()
 
             if self.__normal_driving_mode is True:
@@ -132,4 +135,4 @@ class Drive:
             self.__normal_driving_mode = True
             self.neopixel[0] = (0, 0, 0)
 
-        print("SENS:", current_sensor_value, "{:.1f}".format(Line.get_bar_position(current_sensor_value)), "\t", "{:.0f}".format(Line.get_bar_width(current_sensor_value)), RecognizeShapes.detect_corner_shape(self.__sensor_array))
+        # print("SENS:", current_sensor_value, "{:.1f}".format(Line.get_bar_position(current_sensor_value)), "\t", "{:.0f}".format(Line.get_bar_width(current_sensor_value)), RecognizeShapes.detect_corner_shape(self.__sensor_array))

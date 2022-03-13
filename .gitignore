@@ -6,3 +6,4 @@ System Volume Information/IndexerVolumeGuid
 .fseventsd/no_log
 links.url.txt
 __pycache__
+/*.mpy
