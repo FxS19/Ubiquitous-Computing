@@ -43,7 +43,7 @@ class Drive:
                 # normal driving mode
                 trend = RecognizeShapes.trend(self.__sensor_array, 3)
                 current_sensor_value = self.__sensor_array.history[-1]
-                sig_modifier = 1 + (1 - 1 / (1 + e**(((time.monotonic() - current_sensor_value.time) - 8) / 16)))  # sigmoid function skaled, that the maximum amount is reached after one second
+                sig_modifier = 1 + 1 / (1 + e**(-(time.monotonic() - current_sensor_value.time) + 3)) # sigmoid function skaled, that the maximum amount is reached after one second
                 line_position_modifier = (Line.get_bar_position(current_sensor_value) - 2) * 8 * sig_modifier
 
                 # limit trend values
@@ -69,7 +69,7 @@ class Drive:
             # If a corner was detected and now there is no Line visible
             self.__normal_driving_mode = False
             if shape[0] == '9':  # about 90° corner detected
-                self.neopixel[0] = (128, 0, 0)
+                self.neopixel[0] = (30, 0, 0)
                 if shape[1] == 'l':
                     self.vehicle.set_speed(
                         self.__speed_values["base_speed"] * self.__corner_9_short_modifier,
