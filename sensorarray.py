@@ -59,11 +59,11 @@ class SensorArrayValue:
 class SensorArray:
     """All IR sensors combined in one Class"""
     _s = []
-    LEFT_LEFT = 4
-    LEFT = 3
+    LEFT_LEFT = 0
+    LEFT = 1
     CENTER = 2
-    RIGHT = 1
-    RIGHT_RIGHT = 0
+    RIGHT = 3
+    RIGHT_RIGHT = 4
     history_length = 30
     history = [
         SensorArrayValue([

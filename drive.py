@@ -11,8 +11,12 @@ from sensor import SensorValue
 from sensorarray import SensorArray
 from line import Line
 from settingStorage import SettingStorage
+import board
+import digitalio
 
 e = 2.7182818  # euler's number
+led = digitalio.DigitalInOut(board.LED)
+led.direction = digitalio.Direction.OUTPUT
 
 
 class Drive:
@@ -42,6 +46,7 @@ class Drive:
                 self.special_driving_modes(None)
             ctr += 1
             self.vehicle.update()
+            led.value = not led.value
 
             if self.__normal_driving_mode is True:
                 # normal driving mode
@@ -75,7 +80,7 @@ class Drive:
             if shape[0] == '9':  # about 90° corner detected
                 self.neopixel[0] = (30, 0, 0)
                 begin_time = time.monotonic()
-                while (time.monotonic() > begin_time + 0.4): # drive some time over the edge but keep values up to date
+                while (time.monotonic() < begin_time + 0.4): # drive some time over the edge but keep values up to date
                     self.__sensor_array.update() 
                     self.vehicle.update()
                 if shape[1] == 'l':
@@ -86,7 +91,7 @@ class Drive:
                     self.vehicle.set_speed(
                         self.__speed_values["base_speed"] * self.__corner_9_long_modifier,
                         self.__speed_values["base_speed"] * self.__corner_9_short_modifier)
-                while (not Line.is_something(self.__sensor_array.history[-1])): # continue rotating until Line is visible
+                while (not Line.is_something(self.__sensor_array.history[-1])): # now there should not be any line visible. continue rotating until Line is visible
                     self.__sensor_array.update() 
                     self.vehicle.update()
 
@@ -107,8 +112,8 @@ class Drive:
                     self.vehicle.set_speed(0, 0)
                 else:
                     self.neopixel[0] = (0, 0, 255)
-                    self.vehicle.set_speed(self.__speed_values["base_speed"] * self.__corner_9_long_modifier, -self.__speed_values["base_speed"] * self.__corner_9_short_modifier)
-                    while (self.__sensor_array.history[-1][SensorArray.RIGHT_RIGHT] != SensorValue.BLACK): # rotate until line is visible on the right
+                    self.vehicle.set_speed(self.__speed_values["base_speed"] * self.__corner_9_long_modifier, self.__speed_values["base_speed"] * self.__corner_9_short_modifier)
+                    while (self.__sensor_array.history[-1][SensorArray.RIGHT_RIGHT] == SensorValue.WHITE): # rotate until line is visible on the right
                         self.__sensor_array.update() 
                         self.vehicle.update()
 

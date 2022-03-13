@@ -102,25 +102,25 @@ class RecognizeShapes:
                 if detected_patterns[4]:
                     return 'hl'
                 return 'hr'
-            if detected_patterns[3] and detected_patterns[2]: # there was a corner on the left and right
-                return 'tr' # t crossing center, but tr also works
+            # if detected_patterns[3] and detected_patterns[2]: # there was a corner on the left and right
+            #     return 'tr' # t crossing center, but tr also works
             if detected_patterns[3]:  # there was a corner on the right
                 return '9r'
             if detected_patterns[2]:  # there was a corner on the left
                 return '9l'
 
-        if detected_patterns[4] and detected_patterns[5]: # a line split on the left and right was visible
-            return 'tr' # 4-way crossing from an weird angle
-        if  detected_patterns[2] and detected_patterns[3] and results[0][0] == 1 and now - results[0][1] > 0.3: # there was a corner on the left and right, now there is a single line since more the x seconds
+        # if detected_patterns[4] and detected_patterns[5]: # a line split on the left and right was visible
+        #     return 'tr' # 4-way crossing from an weird angle
+        if  detected_patterns[2] and detected_patterns[3] and results[0][0] == 1 and now - results[0][1] > 0.4: # there was a corner on the left and right, now there is a single line since more the x seconds
             return 'tr' # 4-way crossing
 
         if detected_patterns[4] or detected_patterns[5]:  # a line split was visible
-            if results[0][0] == 1 and now - results[0][1] > 0.3:  # newest value is single line and older then x sec
+            if results[0][0] == 1 and now - results[0][1] > 0.4:  # newest value is single line and older then x sec
                 if detected_patterns[4]:
                     return 'tl'
                 return 'tr'
         if detected_patterns[3] or detected_patterns[2]: # there was a corner on the left or right
-            if results[0][0] == 1 and now - results[0][1] > 0.3:  # newest value is single line and older then x sec
+            if results[0][0] == 1 and now - results[0][1] > 0.4:  # newest value is single line and older then x sec
                 if detected_patterns[2]:
                     return 'tl'
                 return 'tr'
@@ -191,7 +191,7 @@ class RecognizeShapes:
         for sav in reversed(sensor_array.history):
             if now - sav.time > seconds:
                 break  # stop analyzing if time target is reached
-            for x in range(SensorArray.LEFT_LEFT + 1):
+            for x in range(SensorArray.RIGHT_RIGHT + 1):
                 if sav[x] == SensorValue.BLACK:
                     sav_return[x] = SensorValue.BLACK
         return sav_return
