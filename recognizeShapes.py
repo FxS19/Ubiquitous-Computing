@@ -153,10 +153,28 @@ class RecognizeShapes:
         for sav in reversed(sensor_array.history):
             if now - sav.time > max_look_back_sec:
                 break  # stop analyzing if time target is reached
-            if Line.get_bar_position(sav) == -0.5:
+            if Line.get_bar_position(sav) == -0.5 or Line.get_bar_count(sav) > 1 or Line.get_bar_width(sav) > 2:
                 continue
             ctr += 1
             sum += Line.get_bar_position(sav)
         if ctr == 0:
             return 2
         return sum / ctr
+    
+    def compress_line_by_time(sensor_array: SensorArray, seconds: float) -> SensorArrayValue:
+        """Return all recorded sensor values of the last x seconds in one value"""
+        now = time.monotonic()
+        sav_return = SensorArrayValue([
+            SensorValue(SensorValue.WHITE),
+            SensorValue(SensorValue.WHITE),
+            SensorValue(SensorValue.WHITE),
+            SensorValue(SensorValue.WHITE),
+            SensorValue(SensorValue.WHITE)
+        ])
+        for sav in reversed(sensor_array.history):
+            if now - sav.time > seconds:
+                break  # stop analyzing if time target is reached
+            for x in range(SensorArray.LEFT_LEFT + 1):
+                if sav[x] == SensorValue.BLACK:
+                    sav_return[x] = SensorValue.BLACK
+        return sav_return
