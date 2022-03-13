@@ -71,7 +71,7 @@ class Drive:
 
     def special_driving_modes(self, _):
         """Detect end perform special driving tasks"""
-        shape = RecognizeShapes.detect_corner_shape(self.__sensor_array, max_look_back_sec=0.8)
+        shape = RecognizeShapes.detect_corner_shape(self.__sensor_array, max_look_back_sec=1)
         current_sensor_value = self.__sensor_array.history[-1]
 
         if shape != '':
@@ -122,12 +122,16 @@ class Drive:
             self.neopixel[0] = (128, 128, 128)
             self.__normal_driving_mode = False
             last_valid_line_position = False
+            do_nothing = False
             for sensor_array_value in reversed(self.__sensor_array.history):
                 # search for the latest valid line position in the history
                 if Line.is_something(sensor_array_value):
                     last_valid_line_position = Line.get_bar_position(sensor_array_value)
+                    if sensor_array_value[SensorArray.LEFT_LEFT] == SensorValue.WHITE and sensor_array_value[SensorArray.RIGHT_RIGHT] == SensorValue.WHITE:
+                        if time.monotonic() < sensor_array_value.time + 0.4:
+                            do_nothing = True
                     break
-            if last_valid_line_position >= 0:
+            if last_valid_line_position >= 0 and not do_nothing:
                 if last_valid_line_position > SensorArray.CENTER:
                     # Line was valid on the right side
                     self.vehicle.set_speed(self.__speed_values["base_speed"], self.__speed_values["base_speed"] * -1)

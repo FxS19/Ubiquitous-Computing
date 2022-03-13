@@ -109,8 +109,8 @@ class RecognizeShapes:
             if detected_patterns[2]:  # there was a corner on the left
                 return '9l'
 
-        # if detected_patterns[4] and detected_patterns[5]: # a line split on the left and right was visible
-        #     return 'tr' # 4-way crossing from an weird angle
+        if detected_patterns[4] and detected_patterns[5]: # a line split on the left and right was visible
+             return 'tr' # 4-way crossing from an weird angle
         if  detected_patterns[2] and detected_patterns[3] and results[0][0] == 1 and now - results[0][1] > 0.4: # there was a corner on the left and right, now there is a single line since more the x seconds
             return 'tr' # 4-way crossing
 
