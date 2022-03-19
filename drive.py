@@ -3,6 +3,7 @@ Functions for driving
 Board: Metro ESP32 S2 BETA
 10.09.21 - group 1
 """
+from micropython import const
 import time
 from recognizeShapes import RecognizeShapes
 from vehicle import Vehicle
@@ -14,29 +15,30 @@ from settingStorage import SettingStorage
 import board
 import digitalio
 
-e = 2.7182818  # euler's number
+e = const(2.7182818)  # euler's number
 led = digitalio.DigitalInOut(board.LED)
 led.direction = digitalio.Direction.OUTPUT
 
 
 class Drive:
+    vehicle = Vehicle()
+    active = True
+    __normal_driving_mode = True
+    __sensor_array = SensorArray(history_length=10)
+    __cubic_steer_aggressiveness = float(SettingStorage.get_value("cubic_aggressiveness"))
+    __linear_steer_aggressiveness = float(SettingStorage.get_value("linear_aggressiveness"))
+    __corner_9_short_modifier = float(SettingStorage.get_value("corner_9_short_modifier"))
+    __corner_9_long_modifier = float(SettingStorage.get_value("corner_9_long_modifier"))
+    __corner_h_short_modifier = float(SettingStorage.get_value("corner_h_short_modifier"))
+    __corner_h_long_modifier = float(SettingStorage.get_value("corner_h_long_modifier"))
+    __drive_over_corner_seconds = float(SettingStorage.get_value("drive_over_corner_seconds"))
+
     __speed_values = {
         "base_speed": 25
     }
 
     def __init__(self, neopixel: NeoPixel) -> None:
         self.neopixel = neopixel
-        self.vehicle = Vehicle()
-        self.active = True
-        self.__normal_driving_mode = True
-        self.__sensor_array = SensorArray()
-        self.__cubic_steer_aggressiveness = float(SettingStorage.get_value("cubic_aggressiveness"))
-        self.__linear_steer_aggressiveness = float(SettingStorage.get_value("linear_aggressiveness"))
-        self.__corner_9_short_modifier = float(SettingStorage.get_value("corner_9_short_modifier"))
-        self.__corner_9_long_modifier = float(SettingStorage.get_value("corner_9_long_modifier"))
-        self.__corner_h_short_modifier = float(SettingStorage.get_value("corner_h_short_modifier"))
-        self.__corner_h_long_modifier = float(SettingStorage.get_value("corner_h_long_modifier"))
-        self.__drive_over_corner_seconds = float(SettingStorage.get_value("drive_over_corner_seconds"))
 
     def start(self):
         """Start driving"""

@@ -1,10 +1,13 @@
 """Combine sensors to an Array for easier use"""
 
+
+from micropython import const
 import board
 import time
 from sensor import SensorValue, Sensor
 from print import print_d
 
+__EMPTY_SENSORVALUE = SensorValue(SensorValue.WHITE)
 
 class SensorArrayValue:
     """Value type of Sensor Array"""
@@ -59,21 +62,13 @@ class SensorArrayValue:
 class SensorArray:
     """All IR sensors combined in one Class"""
     _s = []
-    LEFT_LEFT = 0
-    LEFT = 1
-    CENTER = 2
-    RIGHT = 3
-    RIGHT_RIGHT = 4
+    LEFT_LEFT = const(0)
+    LEFT = const(1)
+    CENTER = const(2)
+    RIGHT = const(3)
+    RIGHT_RIGHT = const(4)
     history_length = 30
-    history = [
-        SensorArrayValue([
-            SensorValue(SensorValue.WHITE),
-            SensorValue(SensorValue.WHITE),
-            SensorValue(SensorValue.WHITE),
-            SensorValue(SensorValue.WHITE),
-            SensorValue(SensorValue.WHITE)
-        ])
-    ]
+    history = []
 
     ''' sensor array history:
 
@@ -83,7 +78,7 @@ class SensorArray:
 
     [old, , , , , new]'''
 
-    def __init__(self) -> None:
+    def __init__(self, history_length = 30) -> None:
         """All IR sensors
 
         Args:
@@ -95,6 +90,10 @@ class SensorArray:
             Sensor(board.IO7),
             Sensor(board.IO6),
             Sensor(board.IO5)]
+        self.history = [
+            SensorArrayValue([__EMPTY_SENSORVALUE] * 5)
+        ] * history_length
+        self.history_length = history_length
         self.update(print_d)
 
     def read(self, sensor_id) -> SensorValue:
@@ -113,8 +112,7 @@ class SensorArray:
         sav = SensorArrayValue(ret)
         if sav != self.history[-1]:
             print_d("SENS:", sav)
-            if len(self.history) >= self.history_length:
-                self.history.pop(0)
+            self.history.pop(0)
             self.history.append(sav)
             callback(sav)
 

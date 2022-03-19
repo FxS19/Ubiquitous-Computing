@@ -5,14 +5,15 @@ AZ-Delivery IR-digital Sensoren
 Group 1
 """
 
+from micropython import const
 from digitalio import DigitalInOut, Direction, Pull
 import microcontroller
 
 
 class SensorValue:
     """Value type of IR sensor"""
-    WHITE = False
-    BLACK = True
+    WHITE = const(False)
+    BLACK = const(True)
 
     def __init__(self, value) -> None:
         self.__value = value
