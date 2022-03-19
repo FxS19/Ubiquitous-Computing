@@ -57,18 +57,19 @@ class RecognizeShapes:
         def __append_type(i, tiemestamp):
             if results[-1][0] != i:
                 results.append((i, tiemestamp))
-                detected_patterns[i] = True
+                detected_patterns[i] = tiemestamp
             elif results[-1][1] > tiemestamp:
                 results[-1] = (i, tiemestamp)
+                detected_patterns[i] = tiemestamp
 
         averageLinePosition = RecognizeShapes.average_line_position(sensor_array, max_look_back_sec)
 
-        # 0: nothing
-        # 1: single line
-        # 2: corner l
-        # 3: corner r
-        # 4: split l
-        # 5: split r
+        p_nothing = 0 # 0: nothing
+        p_singel_line = 1 # 1: single line
+        p_corner_l = 2 # 2: corner l
+        p_corner_r = 3 # 3: corner r
+        p_split_l = 4 # 4: split l
+        p_split_r = 5 # 5: split r
 
         # analyse history and detect sensor patterns
         for sav in reversed(sensor_array.history):
@@ -78,50 +79,68 @@ class RecognizeShapes:
                 bar1 = Line.get_bar_position(Line.get_line(sav, 1)) - 2
                 bar2 = Line.get_bar_position(Line.get_line(sav, 2)) - 2
                 if abs(bar1) - abs(averageLinePosition) > abs(bar2) - abs(averageLinePosition):  # left corner
-                    __append_type(4, sav.time)
+                    __append_type(p_split_l, sav.time)
                 else:
-                    __append_type(5, sav.time)
+                    __append_type(p_split_r, sav.time)
             elif Line.is_something(sav):
                 if Line.get_bar_width(sav) > min_bar_width:  # perfect 90° corner visible
-                    if Line.get_bar_position(sav) >= 2:  # no decision possible based on average line position
-                        __append_type(3, sav.time)
+                    if Line.get_bar_position(sav) >= SensorArray.CENTER:  # tend to the right
+                        __append_type(p_corner_r, sav.time)
                     else:
-                        __append_type(2, sav.time)
+                        __append_type(p_corner_l, sav.time)
                 else:
-                    __append_type(1, sav.time)
+                    __append_type(p_singel_line, sav.time)
             else:
-                __append_type(0, sav.time)
+                __append_type(p_nothing, sav.time)
 
         results.pop(0)  # get rid of start value
 
         if len(results) == 0: # stop if no value visible
             return ''
 
-        if results[0][0] == 0:  # newest value is nothing
-            if detected_patterns[4] or detected_patterns[5]:  # a line split was visible
-                if detected_patterns[4]:
-                    return 'hl'
+        max_time_between_pattern = 0.4
+        detect_crossing_time = 0.4
+
+        if results[0][0] == p_nothing:  # newest value is nothing
+            if detected_patterns[p_split_l] + max_time_between_pattern >= results[0][1]:
+                return 'hl'
+            if detected_patterns[p_split_r] + max_time_between_pattern >= results[0][1]:
                 return 'hr'
-            # if detected_patterns[3] and detected_patterns[2]: # there was a corner on the left and right
-            #     return 'tr' # t crossing center, but tr also works
-            if detected_patterns[3]:  # there was a corner on the right
+
+            if (detected_patterns[p_corner_r] 
+              and detected_patterns[p_corner_l] 
+              and abs(detected_patterns[p_corner_r] - detected_patterns[p_corner_l]) <= max_time_between_pattern): # there was a corner on the left and right
+                return 'tr' # t crossing center, but tr also works
+            if detected_patterns[p_corner_r] + max_time_between_pattern >= results[0][1]:  # there was a corner on the right
                 return '9r'
-            if detected_patterns[2]:  # there was a corner on the left
+            if detected_patterns[p_corner_l] + max_time_between_pattern >= results[0][1]:  # there was a corner on the left
                 return '9l'
 
-        if detected_patterns[4] and detected_patterns[5]: # a line split on the left and right was visible
+        if (detected_patterns[p_split_l] 
+          and detected_patterns[p_split_r] 
+          and abs(detected_patterns[p_split_l] - detected_patterns[p_split_r]) <= max_time_between_pattern): # a line split on the left and right was visible
              return 'tr' # 4-way crossing from an weird angle
-        if  detected_patterns[2] and detected_patterns[3] and results[0][0] == 1 and now - results[0][1] > 0.4: # there was a corner on the left and right, now there is a single line since more the x seconds
+        if (detected_patterns[p_corner_l] 
+          and detected_patterns[p_corner_r] 
+          and abs(detected_patterns[p_corner_l] - detected_patterns[p_corner_r]) <= max_time_between_pattern 
+          and results[0][0] == p_singel_line 
+          and now - results[0][1] > detect_crossing_time): # there was a corner on the left and right, now there is a single line since more the x seconds
             return 'tr' # 4-way crossing
 
-        if detected_patterns[4] or detected_patterns[5]:  # a line split was visible
-            if results[0][0] == 1 and now - results[0][1] > 0.4:  # newest value is single line and older then x sec
-                if detected_patterns[4]:
+        if detected_patterns[p_split_l] or detected_patterns[p_split_r]:  # a line split was visible
+            t = detected_patterns[p_split_l] if detected_patterns[p_split_l] > detected_patterns[p_split_r] else detected_patterns[p_split_r]
+            if (results[0][0] == p_singel_line 
+              and now - results[0][1] > detect_crossing_time  # newest value is single line and older then x sec
+              and t > detected_patterns[p_nothing]): # There was always a line visible inside the pattern
+                if detected_patterns[p_split_l]:
                     return 'tl'
                 return 'tr'
-        if detected_patterns[3] or detected_patterns[2]: # there was a corner on the left or right
-            if results[0][0] == 1 and now - results[0][1] > 0.4:  # newest value is single line and older then x sec
-                if detected_patterns[2]:
+        if detected_patterns[p_corner_r] or detected_patterns[p_corner_l]: # there was a corner on the left or right
+            t = detected_patterns[p_corner_l] if detected_patterns[p_corner_l] > detected_patterns[p_corner_r] else detected_patterns[p_corner_r]
+            if (results[0][0] == p_singel_line 
+              and now - results[0][1] > detect_crossing_time # newest value is single line and older then x sec
+              and t > detected_patterns[p_nothing]): # There was always a line visible inside the pattern
+                if detected_patterns[p_corner_l]:
                     return 'tl'
                 return 'tr'
 

@@ -36,13 +36,14 @@ class Drive:
         self.__corner_9_long_modifier = float(SettingStorage.get_value("corner_9_long_modifier"))
         self.__corner_h_short_modifier = float(SettingStorage.get_value("corner_h_short_modifier"))
         self.__corner_h_long_modifier = float(SettingStorage.get_value("corner_h_long_modifier"))
+        self.__drive_over_corner_seconds = float(SettingStorage.get_value("drive_over_corner_seconds"))
 
     def start(self):
         """Start driving"""
         ctr = 0
         while self.active:
             self.__sensor_array.update(self.special_driving_modes)
-            if ctr % 10 == 0:
+            if ctr % 5 == 0:
                 self.special_driving_modes(None)
             ctr += 1
             self.vehicle.update()
@@ -80,20 +81,23 @@ class Drive:
             if shape[0] == '9':  # about 90° corner detected
                 self.neopixel[0] = (30, 0, 0)
                 begin_time = time.monotonic()
-                while (time.monotonic() < begin_time + 0.4): # drive some time over the edge but keep values up to date
+                while (time.monotonic() < begin_time + self.__drive_over_corner_seconds): # drive some time over the edge but keep values up to date
                     self.__sensor_array.update() 
                     self.vehicle.update()
                 if shape[1] == 'l':
                     self.vehicle.set_speed(
                         self.__speed_values["base_speed"] * self.__corner_9_short_modifier,
                         self.__speed_values["base_speed"] * self.__corner_9_long_modifier)
+                    while self.__sensor_array.history[-1][SensorArray.LEFT] == SensorValue.WHITE: # now there should not be any line visible. continue rotating until Line is visible
+                        self.__sensor_array.update() 
+                        self.vehicle.update()
                 else:
                     self.vehicle.set_speed(
                         self.__speed_values["base_speed"] * self.__corner_9_long_modifier,
                         self.__speed_values["base_speed"] * self.__corner_9_short_modifier)
-                while (not Line.is_something(self.__sensor_array.history[-1])): # now there should not be any line visible. continue rotating until Line is visible
-                    self.__sensor_array.update() 
-                    self.vehicle.update()
+                    while self.__sensor_array.history[-1][SensorArray.RIGHT] == SensorValue.WHITE: # now there should not be any line visible. continue rotating until Line is visible
+                        self.__sensor_array.update() 
+                        self.vehicle.update()
 
             elif shape[0] == 'h':  # robot is at an steep angle to the the corner
                 self.neopixel[0] = (255, 0, 0)
@@ -101,10 +105,16 @@ class Drive:
                     self.vehicle.set_speed(
                         self.__speed_values["base_speed"] * self.__corner_h_short_modifier,
                         self.__speed_values["base_speed"] * self.__corner_h_long_modifier)
+                    while self.__sensor_array.history[-1][SensorArray.LEFT] == SensorValue.WHITE: # now there should not be any line visible. continue rotating until Line is visible
+                        self.__sensor_array.update() 
+                        self.vehicle.update()
                 else:
                     self.vehicle.set_speed(
                         self.__speed_values["base_speed"] * self.__corner_h_long_modifier,
                         self.__speed_values["base_speed"] * self.__corner_h_short_modifier)
+                    while self.__sensor_array.history[-1][SensorArray.RIGHT] == SensorValue.WHITE: # now there should not be any line visible. continue rotating until Line is visible
+                        self.__sensor_array.update() 
+                        self.vehicle.update()
 
             elif shape[0] == 't':  # T crossing is visible
                 if shape[1] == 'l':  # do not turn left
@@ -127,8 +137,8 @@ class Drive:
                 # search for the latest valid line position in the history
                 if Line.is_something(sensor_array_value):
                     last_valid_line_position = Line.get_bar_position(sensor_array_value)
-                    if sensor_array_value[SensorArray.LEFT_LEFT] == SensorValue.WHITE and sensor_array_value[SensorArray.RIGHT_RIGHT] == SensorValue.WHITE:
-                        if time.monotonic() < sensor_array_value.time + 0.4:
+                    if not (last_valid_line_position == SensorArray.LEFT_LEFT or last_valid_line_position == SensorArray.RIGHT_RIGHT):
+                        if time.monotonic() < sensor_array_value.time + self.__drive_over_corner_seconds:
                             do_nothing = True
                     break
             if last_valid_line_position >= 0 and not do_nothing:

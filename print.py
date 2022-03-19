@@ -5,10 +5,12 @@ This provides a simple switch for enabling or disabling DEBUG
 """
 from settingStorage import SettingStorage
 
+__debug__enabled = SettingStorage.get_value("debug") == "True"
+
 
 def print_d(*values: object) -> None:
     """same as print(), but can be disabled to speed things up"""
-    if get_debug_mode():
+    if __debug__enabled:
         print(*values)
 
 
