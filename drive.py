@@ -15,7 +15,7 @@ from settingStorage import SettingStorage
 import board
 import digitalio
 
-e = const(2.7182818)  # euler's number
+e = 2.7182818  # euler's number
 led = digitalio.DigitalInOut(board.LED)
 led.direction = digitalio.Direction.OUTPUT
 
@@ -42,12 +42,9 @@ class Drive:
 
     def start(self):
         """Start driving"""
-        ctr = 0
         while self.active:
             self.__sensor_array.update(self.special_driving_modes)
-            if ctr % 5 == 0:
-                self.special_driving_modes(None)
-            ctr += 1
+            self.special_driving_modes(None)
             self.vehicle.update()
             led.value = not led.value
 
@@ -55,7 +52,7 @@ class Drive:
                 # normal driving mode
                 trend = RecognizeShapes.trend(self.__sensor_array, 3)
                 current_sensor_value = self.__sensor_array.history[-1]
-                sig_modifier = 1 + 1 / (1 + e**(-(time.monotonic() - current_sensor_value.time) + 3)) # sigmoid function skaled, that the maximum amount is reached after one second
+                sig_modifier = 1 + 1 / (1 + e**(-(time.monotonic() - current_sensor_value.time) + 3)) # sigmoid function skaled, that the maximum amount is reached after about one second
                 line_position_modifier = (Line.get_bar_position(current_sensor_value) - 2) * 8 * sig_modifier
 
                 # limit trend values
@@ -73,7 +70,7 @@ class Drive:
         return (trend * self.__cubic_steer_aggressiveness)**3 + (trend * self.__linear_steer_aggressiveness) + self.__speed_values["base_speed"]  # math tested with geogebra
 
     def special_driving_modes(self, _):
-        """Detect end perform special driving tasks"""
+        """Detect end perform special driving tasks, for example corners, crossings"""
         shape = RecognizeShapes.detect_corner_shape(self.__sensor_array, max_look_back_sec=1)
         current_sensor_value = self.__sensor_array.history[-1]
 
