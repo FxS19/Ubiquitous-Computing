@@ -12,8 +12,8 @@ import microcontroller
 
 class SensorValue:
     """Value type of IR sensor"""
-    WHITE = const(False)
-    BLACK = const(True)
+    WHITE = False
+    BLACK = True
 
     def __init__(self, value) -> None:
         self.__value = value
@@ -25,7 +25,7 @@ class SensorValue:
         return "-"
 
     def __eq__(self, o: object) -> bool:
-        if isinstance(o, bool):
+        if isinstance(o, bool) or isinstance(o, int):
             return self.__value == o
         if not isinstance(o, SensorValue):
             return NotImplemented
