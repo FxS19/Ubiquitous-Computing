@@ -102,30 +102,36 @@ class RecognizeShapes:
         detect_crossing_time = 0.4
 
         if results[0][0] == P_NOTHING:  # newest value is nothing
-            if detected_patterns[P_SPLIT_L] + max_time_between_pattern >= results[0][1]:
+            p_nothing_time = now # still nothing :P
+            if detected_patterns[P_SPLIT_L] + max_time_between_pattern >= p_nothing_time:
                 return 'hl'
-            if detected_patterns[P_SPLIT_R] + max_time_between_pattern >= results[0][1]:
+            if detected_patterns[P_SPLIT_R] + max_time_between_pattern >= p_nothing_time:
                 return 'hr'
 
             if (detected_patterns[P_CORNER_R] 
               and detected_patterns[P_CORNER_L] 
-              and abs(detected_patterns[P_CORNER_R] - detected_patterns[P_CORNER_L]) <= max_time_between_pattern): # there was a corner on the left and right
+              and abs(detected_patterns[P_CORNER_R] - detected_patterns[P_CORNER_L]) <= max_time_between_pattern
+              and min(detected_patterns[P_CORNER_R], detected_patterns[P_CORNER_L]) + max_time_between_pattern >= p_nothing_time): # there was a corner on the left and right
                 return 'tr' # t crossing center, but tr also works
-            if detected_patterns[P_CORNER_R] + max_time_between_pattern >= results[0][1]:  # there was a corner on the right
+            if detected_patterns[P_CORNER_R] + max_time_between_pattern >= p_nothing_time:  # there was a corner on the right
                 return '9r'
-            if detected_patterns[P_CORNER_L] + max_time_between_pattern >= results[0][1]:  # there was a corner on the left
+            if detected_patterns[P_CORNER_L] + max_time_between_pattern >= p_nothing_time:  # there was a corner on the left
                 return '9l'
 
         if (detected_patterns[P_SPLIT_L] 
           and detected_patterns[P_SPLIT_R] 
           and abs(detected_patterns[P_SPLIT_L] - detected_patterns[P_SPLIT_R]) <= max_time_between_pattern): # a line split on the left and right was visible
-             return 'tr' # 4-way crossing from an weird angle
+            t = detected_patterns[P_SPLIT_L] if detected_patterns[P_SPLIT_L] < detected_patterns[P_SPLIT_R] else detected_patterns[P_SPLIT_R]
+            if detected_patterns[P_NOTHING] < t: # there was always a line visible since the pattern startet
+                return 'tr' # 4-way crossing from an weird angle ignore not needed directions
         if (detected_patterns[P_CORNER_L] 
           and detected_patterns[P_CORNER_R] 
           and abs(detected_patterns[P_CORNER_L] - detected_patterns[P_CORNER_R]) <= max_time_between_pattern 
           and results[0][0] == P_SINGLE_LINE 
           and now - results[0][1] > detect_crossing_time): # there was a corner on the left and right, now there is a single line since more the x seconds
-            return 'tr' # 4-way crossing
+            t = detected_patterns[P_CORNER_L] if detected_patterns[P_CORNER_L] < detected_patterns[P_CORNER_R] else detected_patterns[P_CORNER_R]
+            if t > detected_patterns[P_NOTHING]: # there was always a line visible since the pattern startet
+                return 'tr' # 4-way crossing, ignore not needed directions
 
         if detected_patterns[P_SPLIT_L] or detected_patterns[P_SPLIT_R]:  # a line split was visible
             t = detected_patterns[P_SPLIT_L] if detected_patterns[P_SPLIT_L] > detected_patterns[P_SPLIT_R] else detected_patterns[P_SPLIT_R]
@@ -200,13 +206,7 @@ class RecognizeShapes:
     def compress_line_by_time(sensor_array: SensorArray, seconds: float) -> SensorArrayValue:
         """Return all recorded sensor values of the last x seconds in one value"""
         now = time.monotonic()
-        sav_return = SensorArrayValue([
-            SensorValue(SensorValue.WHITE),
-            SensorValue(SensorValue.WHITE),
-            SensorValue(SensorValue.WHITE),
-            SensorValue(SensorValue.WHITE),
-            SensorValue(SensorValue.WHITE)
-        ])
+        sav_return = SensorArrayValue([SensorValue(SensorValue.WHITE)] * 5)
         for sav in reversed(sensor_array.history):
             if now - sav.time > seconds:
                 break  # stop analyzing if time target is reached
