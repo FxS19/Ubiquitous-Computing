@@ -1,10 +1,8 @@
 """Display functions"""
 
-import board
 import time
 import storage
 import adafruit_ssd1306
-import busio
 import print
 from settingStorage import SettingStorage
 
