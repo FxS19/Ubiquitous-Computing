@@ -27,8 +27,8 @@ last_position = encoder.position
 # init NEOPIXEL
 pixel_onboard = neopixel.NeoPixel(board.NEOPIXEL, 1)
 pixel_onboard.brightness = 0.5
-
-display = Display(board.I2C(), pixel_onboard)
+i2c = board.I2C()
+display = Display(i2c, pixel_onboard)
 
 update_screen = True
 settings_change_value = False
