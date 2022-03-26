@@ -13,6 +13,7 @@ class SensorArrayValue:
     """Value type of Sensor Array"""
     _values = []
     time = 0
+    __end_time = -1.0
 
     def all(self, color: SensorValue) -> bool:
         """Check if all sensors look like the provided sensor"""
@@ -57,6 +58,14 @@ class SensorArrayValue:
         elif isinstance(other, int):
             return self.time - other
         NotImplemented
+
+    def set_end_time(self, time: float):
+        "Set when this value has ended, needs to be set at higher code level"
+        self.__end_time = time
+    
+    def get_end_time(self):
+        "return time when this value has ended, return time.monotonic if still active"
+        return self.__end_time if self.__end_time != -1.0 else time.monotonic()
 
 
 class SensorArray:
@@ -111,8 +120,13 @@ class SensorArray:
             ret.append(s.read())
         sav = SensorArrayValue(ret)
         if sav != self.history[-1]:
-            print_d("SENS:", sav)
+            if sav == SensorValue.WHITE and sav.get_time_difference(self.history[-1]) <= 0.1: 
+                # Filter bad sensor values, sometimes there is nothing visible. But in reality there is a Line.
+                # ignore these short periods
+                return
+            #print_d("SENS:", sav)
             self.history.pop(0)
+            self.history[-1].set_end_time(sav.time)
             self.history.append(sav)
             callback(sav)
 
