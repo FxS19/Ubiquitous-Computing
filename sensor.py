@@ -5,7 +5,6 @@ AZ-Delivery IR-digital Sensoren
 Group 1
 """
 
-from micropython import const
 from digitalio import DigitalInOut, Direction, Pull
 import microcontroller
 

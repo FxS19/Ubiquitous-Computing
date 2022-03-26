@@ -2,7 +2,6 @@
 
 import os
 
-
 class SettingStorage:
 
     def set_value(key: str, value: str) -> None:
@@ -20,6 +19,7 @@ class SettingStorage:
             with open('storage_' + key, 'rt') as f:
                 v = f.read()
                 f.close()
+                print(key + ":" + v)
                 return v
         except OSError:
             return '0'

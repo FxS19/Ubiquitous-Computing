@@ -25,6 +25,7 @@ class Drive:
     active = True
     __normal_driving_mode = True
     __sensor_array = SensorArray(history_length=10)
+    # Load custom settings into RAM
     __cubic_steer_aggressiveness = float(SettingStorage.get_value("cubic_aggressiveness"))
     __linear_steer_aggressiveness = float(SettingStorage.get_value("linear_aggressiveness"))
     __corner_9_short_modifier = float(SettingStorage.get_value("corner_9_short_modifier"))
