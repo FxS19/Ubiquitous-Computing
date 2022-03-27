@@ -110,7 +110,7 @@ class Display:
         driver = Drive(neopixel=self.__neopixel)
         for x in range(5, 0, -1):
             self.display_center_text("   " + str(x))
-            # time.sleep(1)
+            time.sleep(1)
         self.display_center_text("GO!")
         driver.start()  # force regular updates
 
