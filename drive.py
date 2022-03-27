@@ -89,39 +89,39 @@ class Drive:
 
                 if shape[1] == 'l':
                     begin = time.monotonic()
-                    abbort_search = False
+                    abort_search = False
                     self.vehicle.set_speed(
                         self.__speed_values["base_speed"] * self.__corner_9_short_modifier,
                         self.__speed_values["base_speed"] * self.__corner_9_long_modifier)
                     while (self.__sensor_array.history[-1][SensorArray.LEFT] == SensorValue.WHITE
                             and self.__sensor_array.history[-1][SensorArray.CENTER] == SensorValue.WHITE
-                            and not abbort_search): # now there should not be any line visible. continue rotating until Line is visible
+                            and not abort_search): # now there should not be any line visible. continue rotating until Line is visible
                         self.__sensor_array.update() 
                         self.vehicle.update()
                         if begin + self.__90_deg_corner_seconds < time.monotonic(): # seems to be a false positive, return to the line
                             self.vehicle.set_speed(
                                 self.__speed_values["base_speed"] * self.__corner_9_long_modifier, 
                                 self.__speed_values["base_speed"] * self.__corner_9_short_modifier)
-                            abbort_search = True
+                            abort_search = True
                             while not Line.is_something(self.__sensor_array.history[-1]):
                                 self.__sensor_array.update() 
                                 self.vehicle.update()
                 else:
                     begin = time.monotonic()
-                    abbort_search = False
+                    abort_search = False
                     self.vehicle.set_speed(
                         self.__speed_values["base_speed"] * self.__corner_9_long_modifier,
                         self.__speed_values["base_speed"] * self.__corner_9_short_modifier)
                     while (self.__sensor_array.history[-1][SensorArray.RIGHT] == SensorValue.WHITE
                             and self.__sensor_array.history[-1][SensorArray.CENTER] == SensorValue.WHITE
-                            and not abbort_search): # now there should not be any line visible. continue rotating until Line is visible
+                            and not abort_search): # now there should not be any line visible. continue rotating until Line is visible
                         self.__sensor_array.update() 
                         self.vehicle.update()
                         if begin + self.__90_deg_corner_seconds < time.monotonic(): # seems to be a false positive, return to the line
                             self.vehicle.set_speed(
                                 self.__speed_values["base_speed"] * self.__corner_9_short_modifier, 
                                 self.__speed_values["base_speed"] * self.__corner_9_long_modifier)
-                            abbort_search = True
+                            abort_search = True
                             while not Line.is_something(self.__sensor_array.history[-1]):
                                 self.__sensor_array.update() 
                                 self.vehicle.update()
@@ -129,21 +129,21 @@ class Drive:
             elif shape[0] == 'h':  # robot is at an steep angle to the the corner
                 self.neopixel[0] = (255, 0, 0)
                 begin = time.monotonic()
-                abbort_search = False
+                abort_search = False
                 if shape[1] == 'l':
                     self.vehicle.set_speed(
                         self.__speed_values["base_speed"] * self.__corner_h_short_modifier,
                         self.__speed_values["base_speed"] * self.__corner_h_long_modifier)
                     while (self.__sensor_array.history[-1][SensorArray.LEFT] == SensorValue.WHITE
                             and self.__sensor_array.history[-1][SensorArray.CENTER] == SensorValue.WHITE
-                            and not abbort_search): # now there should not be any line visible. continue rotating until Line is visible
+                            and not abort_search): # now there should not be any line visible. continue rotating until Line is visible
                         self.__sensor_array.update() 
                         self.vehicle.update()
                         if begin + self.__90_deg_corner_seconds * 1.7 < time.monotonic(): # seems to be a false positive, return to the line
                             self.vehicle.set_speed(
                                 self.__speed_values["base_speed"] * self.__corner_h_long_modifier, 
                                 self.__speed_values["base_speed"] * self.__corner_h_short_modifier)
-                            abbort_search = True
+                            abort_search = True
                             while not Line.is_something(self.__sensor_array.history[-1]):
                                 self.__sensor_array.update() 
                                 self.vehicle.update()
@@ -153,14 +153,14 @@ class Drive:
                         self.__speed_values["base_speed"] * self.__corner_h_short_modifier)
                     while (self.__sensor_array.history[-1][SensorArray.RIGHT] == SensorValue.WHITE
                             and self.__sensor_array.history[-1][SensorArray.CENTER] == SensorValue.WHITE
-                            and not abbort_search): # now there should not be any line visible. continue rotating until Line is visible
+                            and not abort_search): # now there should not be any line visible. continue rotating until Line is visible
                         self.__sensor_array.update() 
                         self.vehicle.update()
                         if begin + self.__90_deg_corner_seconds * 1.7 < time.monotonic(): # seems to be a false positive, return to the line
                             self.vehicle.set_speed(
                                 self.__speed_values["base_speed"] * self.__corner_h_short_modifier, 
                                 self.__speed_values["base_speed"] * self.__corner_h_long_modifier)
-                            abbort_search = True
+                            abort_search = True
                             while not Line.is_something(self.__sensor_array.history[-1]):
                                 self.__sensor_array.update() 
                                 self.vehicle.update()
@@ -173,15 +173,15 @@ class Drive:
                     self.neopixel[0] = (0, 0, 255)
                     self.vehicle.set_speed(self.__speed_values["base_speed"] * self.__corner_9_long_modifier, self.__speed_values["base_speed"] * self.__corner_9_short_modifier)
                     begin = time.monotonic()
-                    abbort_search = False
+                    abort_search = False
                     while (self.__sensor_array.history[-1][SensorArray.RIGHT_RIGHT] == SensorValue.WHITE
                             and self.__sensor_array.history[-1][SensorArray.RIGHT] == SensorValue.WHITE
-                            and not abbort_search): # rotate until line is visible on the right
+                            and not abort_search): # rotate until line is visible on the right
                         self.__sensor_array.update() 
                         self.vehicle.update()
                         if begin + self.__90_deg_corner_seconds < time.monotonic(): # seems to be a false positive, return to the line
                             self.vehicle.set_speed(self.__speed_values["base_speed"] * self.__corner_9_short_modifier, self.__speed_values["base_speed"] * self.__corner_9_long_modifier)
-                            abbort_search = True
+                            abort_search = True
                             while not Line.is_something(self.__sensor_array.history[-1]):
                                 self.__sensor_array.update() 
                                 self.vehicle.update()
