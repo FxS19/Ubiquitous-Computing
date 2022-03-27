@@ -54,6 +54,12 @@ while True:
     current_position = encoder.position
     position_change = current_position - last_position
 
+    color_wheel = int(time.monotonic() * 10 )
+    def __calc_color(input: int, id : int):
+        return abs(((input + 170 * id ) % 510) - 255)
+
+    pixel_onboard[0] = ( __calc_color(color_wheel, 0)  , __calc_color(color_wheel, 1), __calc_color(color_wheel, 2) )
+
     if position_change != 0:
         print_d("ENC:", current_position)
         update_screen = True
