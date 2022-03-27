@@ -67,6 +67,11 @@ class Display:
                 "callback": self.get_save_function("drive_over_corner_seconds")
             },
             {
+                "name": "90deg_c_s",
+                "value": float(SettingStorage.get_value("90_deg_corner_seconds")),
+                "callback": self.get_save_function("90_deg_corner_seconds")
+            },
+            {
                 "name": "Drive_old",
                 "value": "drive",
                 "callback": lambda _: None,
