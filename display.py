@@ -72,6 +72,11 @@ class Display:
                 "callback": self.get_save_function("90_deg_corner_seconds")
             },
             {
+                "name": "lab_mode",
+                "value": SettingStorage.get_value("labyrinth_mode") == "True",
+                "callback": self.get_save_function("labyrinth_mode")
+            },
+            {
                 "name": "Drive_old",
                 "value": "drive",
                 "callback": lambda _: None,

@@ -34,6 +34,7 @@ class Drive:
     __corner_h_long_modifier = float(SettingStorage.get_value("corner_h_long_modifier"))
     __drive_over_corner_seconds = float(SettingStorage.get_value("drive_over_corner_seconds"))
     __90_deg_corner_seconds = float(SettingStorage.get_value("90_deg_corner_seconds"))
+    __is_lab_mode = SettingStorage.get_value("labyrinth_mode") == "True"
 
     __speed_values = {
         "base_speed": 25
@@ -193,16 +194,20 @@ class Drive:
             self.__normal_driving_mode = False
             last_valid_line_position = False
             do_nothing = False
+            end_of_line = True
             for sensor_array_value in reversed(self.__sensor_array.history):
                 # search for the latest valid line position in the history
                 if Line.is_something(sensor_array_value):
                     last_valid_line_position = Line.get_bar_position(sensor_array_value)
                     if not (last_valid_line_position == SensorArray.LEFT_LEFT or last_valid_line_position == SensorArray.RIGHT_RIGHT):
+                        end_of_line = False
                         if time.monotonic() <= sensor_array_value.get_end_time() + self.__drive_over_corner_seconds:
                             do_nothing = True
                     break
             if last_valid_line_position >= 0 and not do_nothing:
-                if last_valid_line_position > SensorArray.CENTER:
+                if end_of_line and self.__is_lab_mode:
+                    self.vehicle.set_speed(self.__speed_values["base_speed"] * -1, self.__speed_values["base_speed"])
+                elif last_valid_line_position > SensorArray.CENTER:
                     # Line was valid on the right side
                     self.vehicle.set_speed(self.__speed_values["base_speed"], self.__speed_values["base_speed"] * -1)
                 else:
